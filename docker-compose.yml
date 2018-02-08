@@ -4,6 +4,12 @@ networks:
   outer-net:
   inner-net:
 
+volumes:
+  prometheus-inner_data: {}
+  influxdb_data: {}
+  prometheus-outer_data: {}
+  grafana_data: {}
+
 services:
   node-exporter:
     image: prom/node-exporter:v0.15.2
@@ -20,13 +26,12 @@ services:
       - 9100:9100
     networks:
       - inner-net
-    restart: always
 
   prometheus-inner:
     image: prom/prometheus:v2.1.0
     volumes:
       - ./prometheus-inner:/etc/prometheus
-      - ./data/prometheus-inner:/prometheus
+      - prometheus-inner_data:/prometheus
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
@@ -38,25 +43,23 @@ services:
     networks:
       - inner-net
       - outer-net
-    restart: always
 
   influxdb:
     image: influxdb:1.4.3-alpine
     volumes:
-      - ./data/influxdb:/var/lib/influxdb
+      - influxdb_data:/var/lib/influxdb/
     ports:
       - 8086:8086
     env_file:
       - env.influxdb
     networks:
       - outer-net
-    restart: always
 
   prometheus-outer:
     image: prom/prometheus:v2.1.0
     volumes:
       - ./prometheus-outer:/etc/prometheus
-      - ./data/prometheus-outer:/prometheus
+      - prometheus-outer_data:/prometheus
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
@@ -67,7 +70,6 @@ services:
       - 9091:9090
     networks:
       - outer-net
-    restart: always
 
   grafana:
     image: grafana/grafana:5.0.0-beta1
@@ -75,9 +77,8 @@ services:
       - 3000:3000
     volumes:
       - ./grafana/:/etc/grafana
-      - ./data/grafana:/var/lib/grafana
+      - grafana_data:/var/lib/grafana
     env_file:
       - env.grafana
     networks:
       - outer-net
-    restart: always

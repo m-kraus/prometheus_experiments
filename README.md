@@ -24,7 +24,7 @@ the dashboard "Inner" shows the same from prometheus-inner.
 ## Stop the experiment
 ```sh
 docker swarm rm prom
-./prune_data.sh
+docker volume prune
 docker swarm leave --force # If swarm is not needed anymore
 ```
 
@@ -34,6 +34,7 @@ docker stack ls
 docker stack ps prom
 docker stack rm prom
 docker stack services prom
+docker volume ls
 docker service ls
 docker service logs -f prom_prometheus-inner
 docker ps
