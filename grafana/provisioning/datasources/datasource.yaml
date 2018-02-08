@@ -1,0 +1,33 @@
+datasources:
+  # <string, required> name of the datasource. Required
+- name: prometheus-inner
+  type: prometheus
+  access: proxy
+  org_id: 1
+  url: http://prometheus-inner:9090
+  password:
+  user:
+  database:
+  basic_auth:
+  basic_auth_user:
+  basic_auth_password:
+  with_credentials:
+  is_default: false
+  version: 1
+  editable: true
+
+- name: prometheus-outer
+  type: prometheus
+  access: proxy
+  org_id: 1
+  url: http://prometheus-outer:9090
+  password:
+  user:
+  database:
+  basic_auth:
+  basic_auth_user:
+  basic_auth_password:
+  with_credentials:
+  is_default: true
+  version: 1
+  editable: true
