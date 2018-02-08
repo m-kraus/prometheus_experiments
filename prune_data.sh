@@ -10,3 +10,7 @@ mkdir -p ./data/influxdb
 mkdir -p ./data/prometheus-inner
 mkdir -p ./data/prometheus-outer
 
+touch ./data/grafana/.gitignore
+touch ./data/influxdb/.gitignore
+touch ./data/prometheus-inner/.gitignore
+touch ./data/prometheus-outer/.gitignore
