@@ -1,5 +1,11 @@
 # experiment_prometheus_cascade
 
+## Diagaram
+```
+node-exporter <-- prometheus-inner --> influxdb <-- prometheus-outer <-- grafana
+(     inner-net         )(                     outer-net                       )
+```
+
 ## Start the experiment
 ```sh
 docker swarm init # If swarm not yet initialized
@@ -11,6 +17,9 @@ Access the components:
 - Inner Prometheus: http://localhost:9090
 - Outer Prometheus: http://localhost:9091
 - InfluxDB localhost:8086
+
+Grafana show metrics from prometheus-outer on the Dasboard "Outer". As a reference
+the dashboard "Inner" shows the same from prometheus-inner.
 
 ## Stop the experiment
 ```sh
