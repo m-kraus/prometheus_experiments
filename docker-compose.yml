@@ -55,6 +55,18 @@ services:
     networks:
       - outer-net
 
+        #  alertmanager:
+        #    image: prom/alertmanager:v0.13.0
+        #    ports:
+        #      - 9093:9093
+        #    volumes:
+        #      - ./alertmanager/:/etc/alertmanager/
+        #    command:
+        #      - '--config.file=/etc/alertmanager/config.yml'
+        #      - '--storage.path=/alertmanager'
+        #    networks:
+        #      - outer-net
+
   prometheus-outer:
     image: prom/prometheus:v2.1.0
     volumes:
