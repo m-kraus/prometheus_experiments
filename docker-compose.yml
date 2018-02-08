@@ -101,7 +101,7 @@ services:
   #     - '--config.file=/etc/alertmanager/config.yml'
   #     - '--storage.path=/alertmanager'
   #   networks:
-  #     - outer-net
+  #     - outer-net 
   #   deploy:
   #     replicas: 1
   #     update_config:
