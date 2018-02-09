@@ -28,6 +28,10 @@ docker volume prune
 docker swarm leave --force # If swarm is not needed anymore
 ```
 
+## Outcome
+- external_label have to be exactly the same, not even additional label work
+- the inner prometheus may not have a remote_read, at least sometimes this led to half empty Inner-dashboard in Grafana
+
 ## Some useful commands
 ```sh
 docker stack ls
