@@ -1,6 +1,6 @@
 # experiment_prometheus_cascade
 
-## Diagaram
+## Diagram
 ```
 node-exporter <-- prometheus-inner --> influxdb <-- prometheus-outer <-- grafana
 (     inner-net         )(                     outer-net                       )
