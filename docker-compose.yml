@@ -135,7 +135,7 @@ services:
         condition: on-failure
 
   grafana:
-    image: grafana/grafana:5.0.0-beta1
+    image: grafana/grafana:5.0.0-beta4
     ports:
       - 3000:3000
     volumes:
