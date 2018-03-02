@@ -58,20 +58,6 @@ services:
         delay: 10s
       restart_policy:
         condition: on-failure
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 2
-        delay: 10s
-      restart_policy:
-        condition: on-failure
-    deploy:
-      replicas: 1
-      update_config:
-        parallelism: 2
-        delay: 10s
-      restart_policy:
-        condition: on-failure
 
   influxdb:
     image: influxdb:1.4.3-alpine
