@@ -29,7 +29,7 @@ docker swarm leave --force # If swarm is not needed anymore
 ```
 
 ## Outcome
-- external_label have to be exactly the same, not even additional label work
+- prometheus instances have to share the same external labels. the "lower" instance may have additional labels, that appear on the "upper" instance
 - the inner prometheus may not have a remote_read, at least sometimes this led to half empty Inner-dashboard in Grafana
 
 ## Some useful commands

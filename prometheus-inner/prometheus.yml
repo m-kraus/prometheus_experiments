@@ -5,6 +5,7 @@ global:
 
   external_labels:
     monitor: 'prometheus_cascade'
+    extra_label: 'inner'
 
 remote_write:
 - url: "http://influxdb:8086/api/v1/prom/write?u=user&p=pass&db=prometheus"
