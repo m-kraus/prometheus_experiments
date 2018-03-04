@@ -1,0 +1,270 @@
+version: '3.1'
+
+networks:
+  c1:
+  c2:
+  c3:
+  transfer:
+  client:
+
+volumes:
+  c1-prom_data: {}
+  c2-prom_data: {}
+  c3-prom_data: {}
+  c1-influxdb_data: {}
+  c2-influxdb_data: {}
+  c3-influxdb_data: {}
+  meta-prom_data: {}
+  meta-grafana_data: {}
+
+services:
+  c1-nex:
+    image: prom/node-exporter:v0.15.2
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command: 
+      - --path.procfs=/host/proc 
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    #ports:
+    #  - 9100:9100
+    networks:
+      - c1
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  c2-nex:
+    image: prom/node-exporter:v0.15.2
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command: 
+      - --path.procfs=/host/proc 
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    #ports:
+    #  - 9100:9100
+    networks:
+      - c2
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  c3-nex:
+    image: prom/node-exporter:v0.15.2
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command: 
+      - --path.procfs=/host/proc 
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    #ports:
+    #  - 9100:9100
+    networks:
+      - c3
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  c1-prom:
+    image: prom/prometheus:v2.1.0
+    volumes:
+      - ./c1/prom:/etc/prometheus
+      - c1-prom_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention=5d
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-lifecycle
+    ports:
+      - 9001:9090
+    networks:
+      - c1
+      - transfer
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  c2-prom:
+    image: prom/prometheus:v2.1.0
+    volumes:
+      - ./c2/prom:/etc/prometheus
+      - c2-prom_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention=5d
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-lifecycle
+    ports:
+      - 9002:9090
+    networks:
+      - c2
+      - transfer
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  c3-prom:
+    image: prom/prometheus:v2.1.0
+    volumes:
+      - ./c3/prom:/etc/prometheus
+      - c3-prom_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention=5d
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-lifecycle
+    ports:
+      - 9003:9090
+    networks:
+      - c3
+      - transfer
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  c1-influxdb:
+    image: influxdb:1.4.3-alpine
+    volumes:
+      - c1-influxdb_data:/var/lib/influxdb/
+    #ports:
+    #  - 8086:8086
+    environment:
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=admin
+      - INFLUXDB_DB=c1
+      - INFLUXDB_USER=user
+      - INFLUXDB_USER_PASSWORD=pass
+    networks:
+      - transfer
+      - client
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  c2-influxdb:
+    image: influxdb:1.4.3-alpine
+    volumes:
+      - c2-influxdb_data:/var/lib/influxdb/
+    #ports:
+    #  - 8086:8086
+    environment:
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=admin
+      - INFLUXDB_DB=c2
+      - INFLUXDB_USER=user
+      - INFLUXDB_USER_PASSWORD=pass
+    networks:
+      - transfer
+      - client
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  c3-influxdb:
+    image: influxdb:1.4.3-alpine
+    volumes:
+      - c3-influxdb_data:/var/lib/influxdb/
+    #ports:
+    #  - 8086:8086
+    environment:
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=admin
+      - INFLUXDB_DB=c3
+      - INFLUXDB_USER=user
+      - INFLUXDB_USER_PASSWORD=pass
+    networks:
+      - transfer
+      - client
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  meta-prom:
+    image: prom/prometheus:v2.1.0
+    volumes:
+      - ./meta/prom:/etc/prometheus
+      - meta-prom_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention=5d
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-lifecycle
+    ports:
+      - 9090:9090
+    networks:
+      - client
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  grafana:
+    image: grafana/grafana:5.0.0
+    ports:
+      - 3000:3000
+    volumes:
+      - ./meta/grafana/:/etc/grafana
+      - meta-grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - client
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure

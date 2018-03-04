@@ -1,0 +1,28 @@
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+  # scrape_timeout is set to the global default (10s).
+
+  external_labels:
+    monitor: 'meta'
+    cluster: 'c1'
+
+remote_write:
+- url: "http://c1-influxdb:8086/api/v1/prom/write?u=user&p=pass&db=c1"
+
+scrape_configs:
+- job_name: 'prometheus'
+  scrape_interval: 5s
+
+  static_configs:
+  - targets: ['c1-prom:9090']
+
+- job_name: 'node-exporter'
+  dns_sd_configs:
+  - names:
+    - 'tasks.c1-nex'
+    type: 'A'
+    port: 9100
+  # Alternative to DNS based discovery:
+  #static_configs:
+  #  - targets: ['node-exporter:9100']
