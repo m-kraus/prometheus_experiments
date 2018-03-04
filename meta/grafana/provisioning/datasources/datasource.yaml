@@ -4,7 +4,7 @@ datasources:
   type: prometheus
   access: proxy
   org_id: 1
-  url: http://coll-prom:9090
+  url: http://meta-prom:9090
   password:
   user:
   database:

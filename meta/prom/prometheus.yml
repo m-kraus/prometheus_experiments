@@ -16,4 +16,4 @@ scrape_configs:
   scrape_interval: 5s
 
   static_configs:
-    - targets: ['coll-prom:9090']
+    - targets: ['meta-prom:9090']
