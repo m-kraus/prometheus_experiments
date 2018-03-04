@@ -2,8 +2,8 @@
 
 ## Diagram
 ```
-c1/prometehus ---|---> influxdb
-c2/prometehus ---|---> influxdb <-- prometheus <-- grafana
+c1/prometheus ---|---> influxdb
+c2/prometheus ---|---> influxdb <-- prometheus <-- grafana
 c3/prometheus ---|---> influxdb
 ```
 
