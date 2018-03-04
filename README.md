@@ -1,4 +1,4 @@
-# experiment_prometheus_cascade
+# experiment_prometheus_cascade_multicluster
 
 ## Diagram
 ```
@@ -22,7 +22,18 @@ Access the components:
 
 ## Prometheus external labels
 
-To make this construct work
+To make this construct work, we share the same external label across all prometheus instances:
+```
+  external_labels:
+    monitor: 'meta
+```
+
+The "lower" prometheus instances may/should have additional labels, that are then visible/queryable in the "upper" prometheus instance(s):
+```
+  external_labels:
+    monitor: 'meta'
+    cluster: 'c3'
+```
 
 ## Stop the experiment
 ```sh
