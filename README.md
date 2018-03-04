@@ -25,7 +25,7 @@ Access the components:
 To make this construct work, we share the same external label across all prometheus instances:
 ```
   external_labels:
-    monitor: 'meta
+    monitor: 'meta'
 ```
 
 The "lower" prometheus instances may/should have additional labels, that are then visible/queryable in the "upper" prometheus instance(s):
