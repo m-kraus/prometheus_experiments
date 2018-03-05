@@ -66,7 +66,7 @@ curl -X POST http://localhost:9090/-/reload
 
 ## TODO
 - get prom config from external git repo
-- add alertmanager
+- add alertmanager (https://www.robustperception.io/high-availability-prometheus-alerting-and-notification/)
 - test influence of external_labels for read/write
 
 ## Bugs found
