@@ -1,5 +1,11 @@
 # experiment_prometheus_cascade_multicluster
 
+## The obvious words of warning by Brian Brazil
+
+In general you should only be planning on pulling aggregated or other low-cardinality metrics from remote storage, as you would for federation.
+
+Remote storage is for pre-aggregated data used for occasional long-term graphs, not as your primary storage.
+
 ## Diagram
 ```
 c1/prometheus ---|---> influxdb
