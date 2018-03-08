@@ -62,7 +62,7 @@ services:
         condition: on-failure
 
   influxdb:
-    image: influxdb:1.4.3-alpine
+    image: influxdb:1.5.0-alpine
     volumes:
       - influxdb_data:/var/lib/influxdb/
     ports:
@@ -148,7 +148,7 @@ services:
         condition: on-failure
 
   grafana:
-    image: grafana/grafana:5.0.0
+    image: grafana/grafana:5.0.1
     container_name: grafana
     ports:
       - 3000:3000
