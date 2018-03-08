@@ -8,10 +8,14 @@ Remote storage is for pre-aggregated data used for occasional long-term graphs, 
 
 ## Diagram
 ```
-c1/prometheus ---|---> influxdb
-c2/prometheus ---|---> influxdb <-- prometheus <-- grafana
-c3/prometheus ---|---> influxdb
+c1/prometheus ---rem_w---|--> c1/influxdb <--rem_r--\
+c2/prometheus ---rem_w---|--> c2/influxdb <--rem_r---- prometheus <-- grafana
+c3/prometheus ---rem_w---|--> c3/influxdb <--rem_r--/
 ```
+
+* `rem_w` = remote_write
+* `rem_r` = remote_read
+
 
 ## Start the experiment
 ```sh
