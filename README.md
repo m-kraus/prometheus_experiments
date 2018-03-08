@@ -1,5 +1,11 @@
 # experiment_prometheus_cascade
 
+## The obvious words of warning by Brian Brazil
+
+In general you should only be planning on pulling aggregated or other low-cardinality metrics from remote storage, as you would for federation.
+
+Remote storage is for pre-aggregated data used for occasional long-term graphs, not as your primary storage.
+
 ## Diagram
 ```
 node-exporter <-- prometheus-inner --> influxdb <-- prometheus-outer <-- grafana
@@ -53,6 +59,8 @@ docker exec -it INFLUX_CONTAINERID influx
 - get prom config from external git repo
 - add alertmanager
 - test influence of external_labels for read/write
+- test federation https://banzaicloud.com/blog/prometheus-federation/
+- https://github.com/influxdata/telegraf/issues/2429
 
 ## Bugs found
 - not all labels visible in http://localhost:9091/api/v1/label/__name__/values, but queryable

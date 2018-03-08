@@ -13,6 +13,7 @@ volumes:
 services:
   node-exporter:
     image: prom/node-exporter:v0.15.2
+    container_name: node-exporter
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -22,8 +23,8 @@ services:
       - --path.sysfs=/host/sys
       - --collector.filesystem.ignored-mount-points
       - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
-    ports:
-      - 9100:9100
+    #ports:
+    #  - 9100:9100
     networks:
       - inner-net
     deploy:
@@ -36,6 +37,7 @@ services:
 
   prometheus-inner:
     image: prom/prometheus:v2.1.0
+    container_name: prometheus-inner
     volumes:
       - ./prometheus-inner:/etc/prometheus
       - prometheus-inner_data:/prometheus
@@ -77,27 +79,52 @@ services:
       restart_policy:
         condition: on-failure
 
-  # alertmanager:
-  #   image: prom/alertmanager:v0.13.0
-  #   ports:
-  #     - 9093:9093
-  #   volumes:
-  #     - ./alertmanager/:/etc/alertmanager/
-  #   command:
-  #     - '--config.file=/etc/alertmanager/config.yml'
-  #     - '--storage.path=/alertmanager'
-  #   networks:
-  #     - outer-net 
-  #   deploy:
-  #     replicas: 1
-  #     update_config:
-  #       parallelism: 2
-  #       delay: 10s
-  #     restart_policy:
-  #       condition: on-failure
+  #alertmanager-1:
+  #  image: prom/alertmanager:v0.14.0
+  #  container_name: alertmanager-1
+  #  ports:
+  #    - 9301:9093
+  #  volumes:
+  #    - ./alertmanager/:/etc/alertmanager/
+  #  command:
+  #    - '--config.file=/etc/alertmanager/config.yml'
+  #    - '--storage.path=/alertmanager'
+  #    - '--mesh.peer=alertmanager-2:6783'
+  #  networks:
+  #    - inner-net 
+  #    - outer-net 
+  #  deploy:
+  #    replicas: 1
+  #    update_config:
+  #      parallelism: 2
+  #      delay: 10s
+  #    restart_policy:
+  #      condition: on-failure
+  #alertmanager-2:
+  #  image: prom/alertmanager:v0.14.0
+  #  container_name: alertmanager-2
+  #  ports:
+  #    - 9302:9093
+  #  volumes:
+  #    - ./alertmanager/:/etc/alertmanager/
+  #  command:
+  #    - '--config.file=/etc/alertmanager/config.yml'
+  #    - '--storage.path=/alertmanager'
+  #    - '--mesh.peer=alertmanager-1:6783'
+  #  networks:
+  #    - inner-net 
+  #    - outer-net 
+  #  deploy:
+  #    replicas: 1
+  #    update_config:
+  #      parallelism: 2
+  #      delay: 10s
+  #    restart_policy:
+  #      condition: on-failure
 
   prometheus-outer:
     image: prom/prometheus:v2.1.0
+    container_name: prometheus-outer
     volumes:
       - ./prometheus-outer:/etc/prometheus
       - prometheus-outer_data:/prometheus
@@ -122,6 +149,7 @@ services:
 
   grafana:
     image: grafana/grafana:5.0.0
+    container_name: grafana
     ports:
       - 3000:3000
     volumes:
