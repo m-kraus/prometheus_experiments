@@ -159,7 +159,7 @@ services:
         condition: on-failure
 
   c1-influxdb:
-    image: influxdb:1.4.3-alpine
+    image: influxdb:1.5.0-alpine
     volumes:
       - c1-influxdb_data:/var/lib/influxdb/
     #ports:
@@ -181,7 +181,7 @@ services:
       restart_policy:
         condition: on-failure
   c2-influxdb:
-    image: influxdb:1.4.3-alpine
+    image: influxdb:1.5.0-alpine
     volumes:
       - c2-influxdb_data:/var/lib/influxdb/
     #ports:
@@ -203,7 +203,7 @@ services:
       restart_policy:
         condition: on-failure
   c3-influxdb:
-    image: influxdb:1.4.3-alpine
+    image: influxdb:1.5.0-alpine
     volumes:
       - c3-influxdb_data:/var/lib/influxdb/
     #ports:
@@ -250,7 +250,7 @@ services:
         condition: on-failure
 
   grafana:
-    image: grafana/grafana:5.0.0
+    image: grafana/grafana:5.0.1
     ports:
       - 3000:3000
     volumes:
