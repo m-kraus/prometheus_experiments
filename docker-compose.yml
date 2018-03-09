@@ -36,7 +36,7 @@ services:
         condition: on-failure
 
   prometheus-inner:
-    image: prom/prometheus:v2.1.0
+    image: prom/prometheus:v2.2.0
     container_name: prometheus-inner
     volumes:
       - ./prometheus-inner:/etc/prometheus
@@ -123,7 +123,7 @@ services:
   #      condition: on-failure
 
   prometheus-outer:
-    image: prom/prometheus:v2.1.0
+    image: prom/prometheus:v2.2.0
     container_name: prometheus-outer
     volumes:
       - ./prometheus-outer:/etc/prometheus
