@@ -142,7 +142,12 @@ docker exec -it INFLUX_CONTAINERID influx
 ```
 
 ## TODO
+- probably easier: oc serviceaccounts get-token prometheus (https://docs.openshift.com/container-platform/3.7/rest_api/index.html)
+- what's the difference between /api/v1 and /oapi/v1? (https://docs.openshift.com/container-platform/3.7/rest_api/index.html)
+- is there no cluster-reader? https://docs.openshift.com/container-platform/3.7/architecture/additional_concepts/authorization.html#roles
 - identify needed role or access rights to access all node, pods and enpoints via API proxy
+- https://docs.openshift.com/container-platform/3.7/admin_guide/manage_rbac.html
+- https://kubernetes.io/docs/admin/authorization/rbac/
 - tune/fix prometheus relabeling, as for example kube-state-metrics service is accessible via `api/v1/namespaces/monitoring/services/kube-state-metrics/proxy/metrics` and not `api/v1/namespaces/monitoring/services/kube-state-metrics:8080/proxy/metrics` 
 - add node_exporter DaemonSet
 - enable Grafana
