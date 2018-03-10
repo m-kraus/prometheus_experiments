@@ -2,7 +2,7 @@
 
 ## Objective
 
-Monitor an for example an Openshift-Cluster from inside using Prometheus (with a low retention time), but push all metrics to an external InfluxDB using `remote_write`. This InfluxDB is then queried using `remote_read` from an outer Prometheus. This outer Prometheus is the datasource for some Grafana dashboards.
+Monitor for example an Openshift-Cluster from inside using Prometheus (with a low retention time), but push all metrics to an external InfluxDB using `remote_write`. This InfluxDB is then queried using `remote_read` from an outer Prometheus. This outer Prometheus is the datasource for some Grafana dashboards.
 
 In an later extension we want to try federation instead of `remote_write`.
 
@@ -62,7 +62,7 @@ docker exec -it INFLUX_CONTAINERID influx
 ```
 
 ## TODO
-- get innre prometheus config from external git repo
+- get inner prometheus config from external git repo
 - add alertmanager
 - test federation https://banzaicloud.com/blog/prometheus-federation/
 
