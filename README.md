@@ -1,5 +1,11 @@
 # experiment_prometheus_cascade
 
+## Objective
+
+Monitor an for example an Openshift-Cluster from inside using Prometheus (with a low retention time), but push all metrics to an external InfluxDB using `remote_write`. This InfluxDB is then queried using `remote_read` from an outer Prometheus. This outer Prometheus is the datasource for some Grafana dashboards.
+
+In an later extension we want to try federation instead of `remote_write`.
+
 ## The obvious words of warning by Brian Brazil
 
 In general you should only be planning on pulling aggregated or other low-cardinality metrics from remote storage, as you would for federation.
@@ -56,18 +62,9 @@ docker exec -it INFLUX_CONTAINERID influx
 ```
 
 ## TODO
-- get prom config from external git repo
+- get innre prometheus config from external git repo
 - add alertmanager
-- test influence of external_labels for read/write
 - test federation https://banzaicloud.com/blog/prometheus-federation/
-- https://github.com/influxdata/telegraf/issues/2429
 
 ## Bugs found
 - not all labels visible in http://localhost:9091/api/v1/label/__name__/values, but queryable
-- incoming POST requests without user auth leading to 404s:
-  docker service logs -f prom_influxdb
-  prom_influxdb.1.zj2lyknl5z0s@linuxkit-025000000001    | [httpd] 10.255.0.2 - - [08/Feb/2018:18:36:04 +0000] "POST /api/v1/prom/write?db=prometheusremote HTTP/1.1" 404 53 "-" "Go-http-client/1.1" eb745727-0cfe-11e8-8e13-000000000000 289
-  prom_influxdb.1.zj2lyknl5z0s@linuxkit-025000000001    | [httpd] 10.0.1.6 - user [08/Feb/2018:18:36:05 +0000] "POST /api/v1/prom/write?db=prometheus&p=%5BREDACTED%5D&u=user HTTP/1.1" 204 0 "-" "Go-http-client/1.1" ec26a2bc-0cfe-11e8-8e14-000000000000 3357
-  > try to identify source ips, but prometheus-inner is the only instance configured with "/api/v1/prom/write"
-  > unknown whether problem has its source in docker, influxdb or prometheus
-

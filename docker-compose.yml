@@ -13,7 +13,6 @@ volumes:
 services:
   node-exporter:
     image: prom/node-exporter:v0.15.2
-    container_name: node-exporter
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -37,7 +36,6 @@ services:
 
   prometheus-inner:
     image: prom/prometheus:v2.2.0
-    container_name: prometheus-inner
     volumes:
       - ./prometheus-inner:/etc/prometheus
       - prometheus-inner_data:/prometheus
@@ -81,7 +79,6 @@ services:
 
   #alertmanager-1:
   #  image: prom/alertmanager:v0.14.0
-  #  container_name: alertmanager-1
   #  ports:
   #    - 9301:9093
   #  volumes:
@@ -102,7 +99,6 @@ services:
   #      condition: on-failure
   #alertmanager-2:
   #  image: prom/alertmanager:v0.14.0
-  #  container_name: alertmanager-2
   #  ports:
   #    - 9302:9093
   #  volumes:
@@ -124,7 +120,6 @@ services:
 
   prometheus-outer:
     image: prom/prometheus:v2.2.0
-    container_name: prometheus-outer
     volumes:
       - ./prometheus-outer:/etc/prometheus
       - prometheus-outer_data:/prometheus
@@ -149,7 +144,6 @@ services:
 
   grafana:
     image: grafana/grafana:5.0.1
-    container_name: grafana
     ports:
       - 3000:3000
     volumes:
