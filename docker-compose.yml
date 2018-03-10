@@ -1,0 +1,110 @@
+version: '3.1'
+
+networks:
+  outer:
+
+volumes:
+  #influxdb_data: {}
+  prometheus_data: {}
+  #grafana_data: {}
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.2.0
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention=5d
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-lifecycle
+    ports:
+      - 9090:9090
+    networks:
+      - outer
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  #influxdb:
+  #  image: influxdb:1.5.0-alpine
+  #  volumes:
+  #    - influxdb_data:/var/lib/influxdb/
+  #  ports:
+  #    - 8086:8086
+  #  env_file:
+  #    - env.influxdb
+  #  networks:
+  #    - outer
+  #  deploy:
+  #    replicas: 1
+  #    update_config:
+  #      parallelism: 2
+  #      delay: 10s
+  #    restart_policy:
+  #      condition: on-failure
+
+  #alertmanager-1:
+  #  image: prom/alertmanager:v0.14.0
+  #  ports:
+  #    - 9301:9093
+  #  volumes:
+  #    - ./alertmanager/:/etc/alertmanager/
+  #  command:
+  #    - '--config.file=/etc/alertmanager/config.yml'
+  #    - '--storage.path=/alertmanager'
+  #    - '--mesh.peer=alertmanager-2:6783'
+  #  networks:
+  #    - outer
+  #  deploy:
+  #    replicas: 1
+  #    update_config:
+  #      parallelism: 2
+  #      delay: 10s
+  #    restart_policy:
+  #      condition: on-failure
+  #alertmanager-2:
+  #  image: prom/alertmanager:v0.14.0
+  #  ports:
+  #    - 9302:9093
+  #  volumes:
+  #    - ./alertmanager/:/etc/alertmanager/
+  #  command:
+  #    - '--config.file=/etc/alertmanager/config.yml'
+  #    - '--storage.path=/alertmanager'
+  #    - '--mesh.peer=alertmanager-1:6783'
+  #  networks:
+  #    - outer
+  #  deploy:
+  #    replicas: 1
+  #    update_config:
+  #      parallelism: 2
+  #      delay: 10s
+  #    restart_policy:
+  #      condition: on-failure
+
+  #grafana:
+  #  image: grafana/grafana:5.0.1
+  #  ports:
+  #    - 3000:3000
+  #  volumes:
+  #    - ./grafana/:/etc/grafana
+  #    - grafana_data:/var/lib/grafana
+  #  env_file:
+  #    - env.grafana
+  #  networks:
+  #    - outer
+  #  deploy:
+  #    replicas: 1
+  #    update_config:
+  #      parallelism: 2
+  #      delay: 10s
+  #    restart_policy:
+  #      condition: on-failure
