@@ -40,7 +40,7 @@ objects:
   metadata:
     name: prometheus-cluster-reader
   roleRef:
-    name: cluster-admin
+    name: cluster-reader
   subjects:
   - kind: ServiceAccount
     name: prometheus
