@@ -1,5 +1,9 @@
 # experiment_prometheus_cascade_multicluster
 
+## Objective
+
+Monitor multiple Openshift-Clusters from inside using Prometheus (with a low retention time), and push all metrics to an external InfluxDB for each cluster using `remote_write`. These InfluxDBs are then queried using `remote_read` from a single outer Prometheus. This outer Prometheus is the datasource for some Grafana dashboards.
+
 ## The obvious words of warning by Brian Brazil
 
 In general you should only be planning on pulling aggregated or other low-cardinality metrics from remote storage, as you would for federation.
