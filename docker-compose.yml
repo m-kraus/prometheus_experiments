@@ -86,7 +86,7 @@ services:
         condition: on-failure
 
   c1-prom:
-    image: prom/prometheus:v2.2.0
+    image: prom/prometheus:v2.1.0
     volumes:
       - ./c1/prom:/etc/prometheus
       - c1-prom_data:/prometheus
@@ -110,7 +110,7 @@ services:
       restart_policy:
         condition: on-failure
   c2-prom:
-    image: prom/prometheus:v2.2.0
+    image: prom/prometheus:v2.1.0
     volumes:
       - ./c2/prom:/etc/prometheus
       - c2-prom_data:/prometheus
@@ -134,7 +134,7 @@ services:
       restart_policy:
         condition: on-failure
   c3-prom:
-    image: prom/prometheus:v2.2.0
+    image: prom/prometheus:v2.1.0
     volumes:
       - ./c3/prom:/etc/prometheus
       - c3-prom_data:/prometheus
@@ -226,7 +226,7 @@ services:
         condition: on-failure
 
   meta-prom:
-    image: prom/prometheus:v2.2.0
+    image: prom/prometheus:v2.1.0
     volumes:
       - ./meta/prom:/etc/prometheus
       - meta-prom_data:/prometheus
