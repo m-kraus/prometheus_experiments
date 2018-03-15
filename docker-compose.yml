@@ -10,7 +10,7 @@ volumes:
 
 services:
   prometheus:
-    image: prom/prometheus:v2.1.0
+    image: prom/prometheus:v2.2.1
     volumes:
       - ./prometheus:/etc/prometheus
       - prometheus_data:/prometheus
@@ -91,7 +91,7 @@ services:
   #      condition: on-failure
 
   #grafana:
-  #  image: grafana/grafana:5.0.1
+  #  image: grafana/grafana:5.0.2
   #  ports:
   #    - 3000:3000
   #  volumes:
