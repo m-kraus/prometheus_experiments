@@ -143,7 +143,7 @@ services:
         condition: on-failure
 
   grafana:
-    image: grafana/grafana:5.0.2
+    image: grafana/grafana:5.0.3
     ports:
       - 3000:3000
     volumes:
