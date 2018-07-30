@@ -1,0 +1,1 @@
+CREATE SUBSCRIPTION "subc3" ON "prom"."autogen" DESTINATIONS ALL 'http://meta-influxdb:8086'
