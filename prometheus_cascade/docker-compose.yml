@@ -1,0 +1,162 @@
+version: '3.1'
+
+networks:
+  outer-net:
+  inner-net:
+
+volumes:
+  prometheus-inner_data: {}
+  influxdb_data: {}
+  prometheus-outer_data: {}
+  grafana_data: {}
+
+services:
+  node-exporter:
+    image: prom/node-exporter:v0.15.2
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command: 
+      - --path.procfs=/host/proc 
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    #ports:
+    #  - 9100:9100
+    networks:
+      - inner-net
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  prometheus-inner:
+    image: prom/prometheus:v2.2.1
+    volumes:
+      - ./prometheus-inner:/etc/prometheus
+      - prometheus-inner_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention=5d
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-lifecycle
+    ports:
+      - 9090:9090
+    networks:
+      - inner-net
+      - outer-net
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  influxdb:
+    image: influxdb:1.5.0-alpine
+    volumes:
+      - influxdb_data:/var/lib/influxdb/
+    ports:
+      - 8086:8086
+    env_file:
+      - env.influxdb
+    networks:
+      - outer-net
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  #alertmanager-1:
+  #  image: prom/alertmanager:v0.14.0
+  #  ports:
+  #    - 9301:9093
+  #  volumes:
+  #    - ./alertmanager/:/etc/alertmanager/
+  #  command:
+  #    - '--config.file=/etc/alertmanager/config.yml'
+  #    - '--storage.path=/alertmanager'
+  #    - '--mesh.peer=alertmanager-2:6783'
+  #  networks:
+  #    - inner-net 
+  #    - outer-net 
+  #  deploy:
+  #    replicas: 1
+  #    update_config:
+  #      parallelism: 2
+  #      delay: 10s
+  #    restart_policy:
+  #      condition: on-failure
+  #alertmanager-2:
+  #  image: prom/alertmanager:v0.14.0
+  #  ports:
+  #    - 9302:9093
+  #  volumes:
+  #    - ./alertmanager/:/etc/alertmanager/
+  #  command:
+  #    - '--config.file=/etc/alertmanager/config.yml'
+  #    - '--storage.path=/alertmanager'
+  #    - '--mesh.peer=alertmanager-1:6783'
+  #  networks:
+  #    - inner-net 
+  #    - outer-net 
+  #  deploy:
+  #    replicas: 1
+  #    update_config:
+  #      parallelism: 2
+  #      delay: 10s
+  #    restart_policy:
+  #      condition: on-failure
+
+  prometheus-outer:
+    image: prom/prometheus:v2.2.1
+    volumes:
+      - ./prometheus-outer:/etc/prometheus
+      - prometheus-outer_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention=5d
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-lifecycle
+    ports:
+      - 9091:9090
+    networks:
+      - outer-net
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  grafana:
+    image: grafana/grafana:5.0.3
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana/:/etc/grafana
+      - grafana_data:/var/lib/grafana
+    env_file:
+      - env.grafana
+    networks:
+      - outer-net
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure

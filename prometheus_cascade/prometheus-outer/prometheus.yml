@@ -1,0 +1,18 @@
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+  # scrape_timeout is set to the global default (10s).
+
+  external_labels:
+    monitor: 'prometheus_cascade'
+
+remote_read:
+- url: "http://influxdb:8086/api/v1/prom/read?u=user&p=pass&db=prometheus"
+#- url: "http://prometheus-inner:9090/api/v1/read"
+
+scrape_configs:
+- job_name: 'prometheus'
+  scrape_interval: 5s
+
+  static_configs:
+    - targets: ['prometheus-outer:9090']
