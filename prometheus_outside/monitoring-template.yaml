@@ -1,0 +1,96 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: prometheus
+  annotations:
+    "openshift.io/display-name": "ConSol Openshift Monitoring"
+    description: |
+      A monitoring solution for an OpenShift cluster - collect and gather metrics and alerts from nodes, services, and the infrastructure.
+    iconClass: fa fa-cogs
+    tags: "monitoring,prometheus,alertmanager,time-series"
+
+parameters:
+# General
+- description: The namespace to instantiate the monitoring system under. Defaults to 'kube-system'.
+  name: NAMESPACE
+  value: kube-system
+
+# kube-state-metrics
+- description: The location of the kube-state-metrics image.
+  name: IMAGE_KUBESTATEMETRICS
+  # Use k-s-m >= v1.2.0 for Kubernetes versions >= 1.8
+  #value: k8s.gcr.io/kube-state-metrics:v1.2.0
+  # Use k-s-m v1.1.0 for Kubernetes versions < 1.8
+  value: k8s.gcr.io/kube-state-metrics:v1.1.0
+
+objects:
+##############################################################################################
+#
+# Prometheus
+#
+##############################################################################################
+# service account with role cluster-reader
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: prometheus
+    namespace: "${NAMESPACE}"
+- apiVersion: authorization.openshift.io/v1
+  kind: ClusterRoleBinding
+  metadata:
+    name: prometheus-cluster-reader
+  roleRef:
+    name: cluster-reader
+  subjects:
+  - kind: ServiceAccount
+    name: prometheus
+    namespace: "${NAMESPACE}"
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: kube-state-metrics
+    namespace: "${NAMESPACE}"
+    annotations:
+      prometheus.io/scrape: 'true'
+      prometheus.io/port: '8080'
+  spec:
+    ports:
+    - name: kube-state-metrics
+      port: 8080
+      targetPort: 8080
+    selector:
+      name: kube-state-metrics
+
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: kube-state-metrics
+    namespace: "${NAMESPACE}"
+  spec:
+    replicas: 1
+    selector:
+      name: kube-state-metrics
+    template:
+      metadata:
+        labels:
+          name: kube-state-metrics
+      spec:
+        serviceAccount: prometheus
+        serviceAccountName: prometheus
+        containers:
+        - name: kube-state-metrics
+          image: ${IMAGE_KUBESTATEMETRICS}
+          imagePullPolicy: IfNotPresent
+          # Flags are needed for k-s-m >= v1.2.0
+          #args:
+          #- --telemetry-host=127.0.0.1
+          #- --telemetry-port=8181
+          ports:
+          - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
