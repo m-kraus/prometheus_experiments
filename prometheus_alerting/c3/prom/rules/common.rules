@@ -1,0 +1,22 @@
+groups:
+- name: debug-rules
+  rules:
+  - alert: DebugAlwaysFiring
+    expr: up == 1
+    labels:
+      priority: LOW
+      event_id: 27999
+      sub_source: debug
+    annotations:
+      summary: "Always Firing"
+      description: "Cluster {{ $labels.cluster }} / MCID {{ $labels.MCID }} / ENV {{ $labels.ENV }} / HUB {{ $labels.HUB }} / Instance {{ $labels.instance }}."
+  - alert: DebugJobMissing
+    expr: absent(up{job="somejob"})
+    for: 1m 
+    labels:
+      priority: LOW
+      event_id: 27999
+      sub_source: debug
+    annotations:
+      summary: "Job Missing"
+      description: "Cluster {{ $labels.cluster }} / MCID {{ $labels.MCID }} / ENV {{ $labels.ENV }} / HUB {{ $labels.HUB }} / Instance {{ $labels.instance }}."

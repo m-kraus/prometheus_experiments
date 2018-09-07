@@ -1,0 +1,34 @@
+global:
+  scrape_interval:     10s
+  evaluation_interval: 20s
+
+  external_labels:
+    cluster: 'c3'
+    APPD: 'appd1234'
+    ENV: 'test'
+    HUB: 'emea'
+    DEFAULTVALUE: 'default'
+
+alerting:
+  alert_relabel_configs:
+  - target_label: DEFAULTVALUE
+    replacement: 'changed_by_alert_relabel'
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - alertmanager-1:9093
+      - alertmanager-2:9093
+      - alertmanager-3:9093
+
+rule_files:
+- '/etc/prometheus/rules/*.rules'
+
+scrape_configs:
+- job_name: 'prometheus'
+  static_configs:
+  - targets: ['c3-prom:9090']
+    labels:
+      DEFAULTVALUE: 'changed_by_job_label'
+  metric_relabel_configs:
+  - regex: 'some_expensive_label'
+    action: labeldrop

@@ -1,0 +1,122 @@
+version: '3.1'
+
+networks:
+  c1:
+  c2:
+  c3:
+  am:
+
+volumes:
+  c1-prom_data: {}
+  c2-prom_data: {}
+  c3-prom_data: {}
+
+services:
+  c1-prom:
+    image: prom/prometheus:v2.3.2
+    volumes:
+      - ./c1/prom:/etc/prometheus
+      - c1-prom_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention=5d
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-lifecycle
+    ports:
+      - 9001:9090
+    networks:
+      - c1
+      - am
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  c2-prom:
+    image: prom/prometheus:v2.3.2
+    volumes:
+      - ./c2/prom:/etc/prometheus
+      - c2-prom_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention=5d
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-lifecycle
+    ports:
+      - 9002:9090
+    networks:
+      - c2
+      - am
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+  c3-prom:
+    image: prom/prometheus:v2.3.2
+    volumes:
+      - ./c3/prom:/etc/prometheus
+      - c3-prom_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention=5d
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-lifecycle
+    ports:
+      - 9003:9090
+    networks:
+      - c3
+      - am
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  alertmanager-1:
+    image: krausm/json_echo_server:0.1.0
+    networks:
+      - am
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  alertmanager-2:
+    image: krausm/json_echo_server:0.1.0
+    networks:
+      - am
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  alertmanager-3:
+    image: krausm/json_echo_server:0.1.0
+    networks:
+      - am
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
