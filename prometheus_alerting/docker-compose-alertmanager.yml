@@ -10,9 +10,9 @@ volumes:
   c1-prom_data: {}
   c2-prom_data: {}
   c3-prom_data: {}
-  am1_data: {}
-  am2_data: {}
-  am3_data: {}
+  #am1_data: {}
+  #am2_data: {}
+  #am3_data: {}
 
 services:
   c1-prom:
@@ -94,10 +94,10 @@ services:
       - 9301:9093
     volumes:
       - ./alertmanager/:/etc/alertmanager/
-      - am1_data:/data
+      #- am1_data:/data
     command:
       - --config.file=/etc/alertmanager/alertmanager.yml
-      - --storage.path=/data
+      #- --storage.path=/data
       - --web.listen-address=:9093
       - --cluster.listen-address=0.0.0.0:9094
       - --cluster.peer=alertmanager-2:9094
@@ -118,10 +118,10 @@ services:
       - 9302:9093
     volumes:
       - ./alertmanager/:/etc/alertmanager/
-      - am2_data:/data
+      #- am2_data:/data
     command:
       - --config.file=/etc/alertmanager/alertmanager.yml
-      - --storage.path=/data
+      #- --storage.path=/data
       - --web.listen-address=:9093
       - --cluster.listen-address=0.0.0.0:9094
       - --cluster.peer=alertmanager-1:9094
@@ -142,10 +142,10 @@ services:
       - 9303:9093
     volumes:
       - ./alertmanager/:/etc/alertmanager/
-      - am3_data:/data
+      #- am3_data:/data
     command:
       - --config.file=/etc/alertmanager/alertmanager.yml
-      - --storage.path=/data
+      #- --storage.path=/data
       - --web.listen-address=:9093
       - --cluster.listen-address=0.0.0.0:9094
       - --cluster.peer=alertmanager-1:9094
