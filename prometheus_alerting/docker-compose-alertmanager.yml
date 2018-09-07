@@ -96,13 +96,12 @@ services:
       - ./alertmanager/:/etc/alertmanager/
       - am1_data:/data
     command:
-      - --config.file=/etc/alertmanager/config.yml
+      - --config.file=/etc/alertmanager/alertmanager.yml
       - --storage.path=/data
       - --web.listen-address=:9093
       - --cluster.listen-address=0.0.0.0:9094
       - --cluster.peer=alertmanager-2:9094
       - --cluster.peer=alertmanager-3:9094
-      - --log.level=debug
     networks:
       - am
     deploy:
@@ -121,13 +120,12 @@ services:
       - ./alertmanager/:/etc/alertmanager/
       - am2_data:/data
     command:
-      - --config.file=/etc/alertmanager/config.yml
+      - --config.file=/etc/alertmanager/alertmanager.yml
       - --storage.path=/data
       - --web.listen-address=:9093
       - --cluster.listen-address=0.0.0.0:9094
       - --cluster.peer=alertmanager-1:9094
       - --cluster.peer=alertmanager-3:9094
-      - --log.level=debug
     networks:
       - am
     deploy:
@@ -146,13 +144,24 @@ services:
       - ./alertmanager/:/etc/alertmanager/
       - am3_data:/data
     command:
-      - --config.file=/etc/alertmanager/config.yml
+      - --config.file=/etc/alertmanager/alertmanager.yml
       - --storage.path=/data
       - --web.listen-address=:9093
       - --cluster.listen-address=0.0.0.0:9094
       - --cluster.peer=alertmanager-1:9094
       - --cluster.peer=alertmanager-2:9094
-      - --log.level=debug
+    networks:
+      - am
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  eventmanagement:
+    image: krausm/json_echo_server:0.1.0
     networks:
       - am
     deploy:

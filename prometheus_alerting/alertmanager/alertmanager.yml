@@ -1,0 +1,23 @@
+global:
+  # ResolveTimeout is the time after which an alert is declared resolved
+  # if it has not been updated. Default 5m
+  resolve_timeout: 5m
+
+route:
+  receiver: 'devnull'
+
+  routes:
+  - receiver: 'eventmanagement'
+    group_by: ['alertname']
+    group_wait: 0s
+    group_interval: 1s
+    repeat_interval: 1h
+    match_re:
+      APPD: ^(.+)$
+
+receivers:
+- name: 'devnull'
+- name: 'eventmanagement'
+  webhook_configs:
+  - send_resolved: true
+    url: 'http://eventmanagement:9093'
