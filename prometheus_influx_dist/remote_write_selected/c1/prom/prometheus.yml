@@ -1,0 +1,33 @@
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+  # scrape_timeout is set to the global default (10s).
+
+  external_labels:
+    monitor: 'meta'
+    cluster: 'c1'
+
+remote_write:
+- url: "http://meta-influxdb-all:8086/api/v1/prom/write?db=prom"
+  basic_auth:
+    username: user
+    password: pass
+- url: "http://meta-influxdb-selected:8086/api/v1/prom/write?db=prom"
+  basic_auth:
+    username: user
+    password: pass
+  write_relabel_configs:
+  - source_labels: [__name__]
+    regex: (node_load\d+)|(node_memory_SwapFree_bytes)
+    action: keep
+
+scrape_configs:
+- job_name: 'prometheus'
+  scrape_interval: 5s
+
+  static_configs:
+  - targets: ['c1-prom:9090']
+
+- job_name: 'node-exporter'
+  static_configs:
+    - targets: ['c1-nex:9100']

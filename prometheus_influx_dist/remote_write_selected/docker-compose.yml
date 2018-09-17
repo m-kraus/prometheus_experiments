@@ -1,0 +1,114 @@
+version: '3.1'
+
+networks:
+  c1:
+  c2:
+  c3:
+  transfer:
+  meta:
+
+volumes:
+  c1-prom_data: {}
+  meta-influxdb-all_data: {}
+  meta-influxdb-selected_data: {}
+  meta-prom_data: {}
+  meta-grafana_data: {}
+
+services:
+  c1-nex:
+    image: prom/node-exporter:v0.16.0
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command: 
+      - --path.procfs=/host/proc 
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    #ports:
+    #  - 9100:9100
+    networks:
+      - c1
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  c1-prom:
+    image: prom/prometheus:v2.4.0
+    volumes:
+      - ./c1/prom:/etc/prometheus
+      - c1-prom_data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention=5d
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --web.enable-lifecycle
+    ports:
+      - 9090:9090
+    networks:
+      - c1
+      - transfer
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  meta-influxdb-all:
+    #image: influxdb:1.5.4-alpine
+    image: influxdb:1.6.2-alpine
+    volumes:
+      - meta-influxdb-all_data:/var/lib/influxdb/
+    #ports:
+    #  - 8086:8086
+    environment:
+      - INFLUXDB_HTTP_AUTH_ENABLED=true
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=admin
+      - INFLUXDB_DB=prom
+      - INFLUXDB_USER=user
+      - INFLUXDB_USER_PASSWORD=pass
+    networks:
+      - transfer
+      - meta
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  meta-influxdb-selected:
+    #image: influxdb:1.5.4-alpine
+    image: influxdb:1.6.2-alpine
+    volumes:
+      - meta-influxdb-selected_data:/var/lib/influxdb/
+    #ports:
+    #  - 8086:8086
+    environment:
+      - INFLUXDB_HTTP_AUTH_ENABLED=true
+      - INFLUXDB_ADMIN_USER=admin
+      - INFLUXDB_ADMIN_PASSWORD=admin
+      - INFLUXDB_DB=prom
+      - INFLUXDB_USER=user
+      - INFLUXDB_USER_PASSWORD=pass
+    networks:
+      - transfer
+      - meta
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
