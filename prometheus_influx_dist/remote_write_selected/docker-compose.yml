@@ -11,7 +11,6 @@ volumes:
   c1-prom_data: {}
   meta-influxdb-all_data: {}
   meta-influxdb-selected_data: {}
-  meta-prom_data: {}
   meta-grafana_data: {}
 
 services:
@@ -104,6 +103,28 @@ services:
       - INFLUXDB_USER_PASSWORD=pass
     networks:
       - transfer
+      - meta
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+
+  grafana:
+    image: grafana/grafana:5.2.4
+    ports:
+      - 3000:3000
+    volumes:
+      - ./meta/grafana/provisioning:/provisioning
+      - meta-grafana_data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_PATHS_PROVISIONING=/provisioning
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
       - meta
     deploy:
       replicas: 1
