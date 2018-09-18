@@ -2,7 +2,6 @@ version: '3.1'
 
 networks:
   c1:
-  transfer:
   meta:
 
 volumes:
@@ -37,20 +36,7 @@ services:
 
   c1-loadtest-1:
     image: quay.io/freshtracks.io/avalanche
-    ports:
-      - 9001:9001
-    networks:
-      - c1
-    deploy:
-      replicas: 3
-      update_config:
-        parallelism: 2
-        delay: 10s
-      restart_policy:
-        condition: on-failure
-  c1-loadtest-1:
-    image: quay.io/freshtracks.io/avalanche
-    command: --metric-count=200 --series-interval=30
+    command: --metric-count=300 --label-count=7 --series-count=7 --value-interval=15 --series-interval=120 --metric-interval=3600
     ports:
       - 9001:9001
     networks:
@@ -79,7 +65,7 @@ services:
       - 9090:9090
     networks:
       - c1
-      - transfer
+      - meta
     deploy:
       replicas: 1
       update_config:
@@ -89,7 +75,6 @@ services:
         condition: on-failure
 
   meta-influxdb-all:
-    #image: influxdb:1.5.4-alpine
     image: influxdb:1.6.2-alpine
     volumes:
       - meta-influxdb-all_data:/var/lib/influxdb/
@@ -103,7 +88,6 @@ services:
       - INFLUXDB_USER=user
       - INFLUXDB_USER_PASSWORD=pass
     networks:
-      - transfer
       - meta
     deploy:
       replicas: 1
@@ -114,7 +98,6 @@ services:
         condition: on-failure
 
   meta-influxdb-selected:
-    #image: influxdb:1.5.4-alpine
     image: influxdb:1.6.2-alpine
     volumes:
       - meta-influxdb-selected_data:/var/lib/influxdb/
@@ -128,7 +111,6 @@ services:
       - INFLUXDB_USER=user
       - INFLUXDB_USER_PASSWORD=pass
     networks:
-      - transfer
       - meta
     deploy:
       replicas: 1
