@@ -1,0 +1,254 @@
+#TODO
+# - store_1     | Error parsing commandline arguments: unknown long flag '--data.dir'
+# - reloader template
+# - network segmentation
+
+version: "3.5"
+
+networks:
+  whole:
+
+services:
+  minio:
+    image: minio/minio:latest
+    ports:
+      - 19000:9000
+    networks:
+      - whole
+    volumes:
+      - ./data/minio:/data
+    environment:
+      - "MINIO_ACCESS_KEY=THANOS"
+      - "MINIO_SECRET_KEY=ITSTHANOSTIME"
+    entrypoint: sh
+    # This is a workaropund for creating the bucket ""
+    command: -c 'mkdir -p /data/thanosbucket && /usr/bin/minio server /data'
+
+  prom1:
+    image: prom/prometheus:v2.4.3
+    volumes:
+      - ./data/prom1:/data
+      - ./config/prom1:/config
+    command:
+      - --web.listen-address=0.0.0.0:9090
+      - --config.file=/config/prometheus.yml
+      - --storage.tsdb.path=/data
+      - --storage.tsdb.retention=6h
+      - --storage.tsdb.min-block-duration=1h
+      - --storage.tsdb.max-block-duration=1h
+      - --web.enable-lifecycle
+      - --log.level=warn
+    ports:
+      - 9091:9090
+    networks:
+      - whole
+  prom2:
+    image: prom/prometheus:v2.4.3
+    volumes:
+      - ./data/prom2:/data
+      - ./config/prom2:/config
+    command:
+      - --web.listen-address=0.0.0.0:9090
+      - --config.file=/config/prometheus.yml
+      - --storage.tsdb.path=/data
+      - --storage.tsdb.retention=6h
+      - --storage.tsdb.min-block-duration=1h
+      - --storage.tsdb.max-block-duration=1h
+      - --web.enable-lifecycle
+      - --log.level=warn
+    ports:
+      - 9092:9090
+    networks:
+      - whole
+  prom3:
+    image: prom/prometheus:v2.4.3
+    volumes:
+      - ./data/prom3:/data
+      - ./config/prom3:/config
+    command:
+      - --web.listen-address=0.0.0.0:9090
+      - --config.file=/config/prometheus.yml
+      - --storage.tsdb.path=/data
+      - --storage.tsdb.retention=6h
+      - --storage.tsdb.min-block-duration=1h
+      - --storage.tsdb.max-block-duration=1h
+      - --web.enable-lifecycle
+      - --log.level=warn
+    ports:
+      - 9093:9090
+    networks:
+      - whole
+
+  sidecar1:
+    depends_on:
+      - prom1
+    image: improbable/thanos:${THANOS_TAG}
+    volumes:
+      - ./data/prom1:/data
+      - ./config/prom1:/config
+      - ./template:/template
+      - ./creds:/creds
+    command:
+      - sidecar
+      - --debug.name=sidecar1
+      - --log.level=debug
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --prometheus.url=http://prom1:9090
+      - --tsdb.path=/data
+      - --objstore.config-file=/creds/minio.yaml
+      - --cluster.address=0.0.0.0:10900
+      - --cluster.peers=sidecar1:10900
+      #- --reloader.config-file=/template/prometheus.yml.tpl
+      #- --reloader.config-envsubst-file=/config/prometheus.yml
+    ports:
+      - 10901:10902
+    networks:
+      - whole
+    environment:
+      - PROM_INSTANCE=prom1
+      - SIDECAR_INSTANCE=sidecar1
+    #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
+  sidecar2:
+    depends_on:
+      - prom2
+    image: improbable/thanos:${THANOS_TAG}
+    volumes:
+      - ./data/prom2:/data
+      - ./config/prom2:/config
+      - ./template:/template
+      - ./creds:/creds
+    command:
+      - sidecar
+      - --debug.name=sidecar2
+      - --log.level=debug
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --prometheus.url=http://prom2:9090
+      - --tsdb.path=/data
+      - --objstore.config-file=/creds/minio.yaml
+      - --cluster.address=0.0.0.0:10900
+      - --cluster.peers=sidecar1:10900
+      #- --reloader.config-file=/template/prometheus.yml.tpl
+      #- --reloader.config-envsubst-file=/config/prometheus.yml
+    ports:
+      - 10902:10902
+    networks:
+      - whole
+    environment:
+      - PROM_INSTANCE=prom2
+      - SIDECAR_INSTANCE=sidecar2
+    #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
+  sidecar3:
+    depends_on:
+      - prom3
+    image: improbable/thanos:${THANOS_TAG}
+    volumes:
+      - ./data/prom3:/data
+      - ./config/prom3:/config
+      - ./template:/template
+      - ./creds:/creds
+    command:
+      - sidecar
+      - --debug.name=sidecar3
+      - --log.level=debug
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --prometheus.url=http://prom3:9090
+      - --tsdb.path=/data
+      - --objstore.config-file=/creds/minio.yaml
+      - --cluster.address=0.0.0.0:10900
+      - --cluster.peers=sidecar1:10900
+      #- --reloader.config-file=/template/prometheus.yml.tpl
+      #- --reloader.config-envsubst-file=/config/prometheus.yml
+    ports:
+      - 19193:10902
+    networks:
+      - whole
+    environment:
+      - PROM_INSTANCE=prom3
+      - SIDECAR_INSTANCE=sidecar3
+    #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
+
+  store:
+    depends_on:
+      - sidecar1
+      - sidecar2
+      - sidecar3
+    image: improbable/thanos:${THANOS_TAG}
+    volumes:
+      - ./data/store:/data
+      - ./creds:/creds
+    command:
+      - store
+      - --debug.name=store
+      - --log.level=debug
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --data-dir=/data
+      - --objstore.config-file=/creds/minio.yaml
+      - --cluster.address=0.0.0.0:10900
+      - --cluster.peers=sidecar1:10900
+    ports:
+      - 10903:10902
+    networks:
+      - whole
+    #environment:
+    #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
+
+  #compact:
+  #  depends_on:
+  #    - store
+  #  image: improbable/thanos:${THANOS_TAG}
+  #  volumes:
+  #    - ./data/compact:/data
+  #    - ./creds:/creds
+  #  command:
+  #    - compact
+  #    - --debug.name=compact
+  #    - --log.level=debug
+  #    - --http-address=0.0.0.0:10902
+  #    - --data-dir=/data
+  #    - --objstore.config-file=/creds/minio.yaml
+  #    - --retention.resolution-raw=1d
+  #    - --retention.resolution-5m=2d
+  #    - --retention.resolution-1h=5d
+  #  ports:
+  #    - 10904:10902
+  #  networks:
+  #    - whole
+  #  #environment:
+  #  #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
+
+  query1:
+    depends_on:
+      - store
+    image: improbable/thanos:${THANOS_TAG}
+    command:
+      - query
+      - --debug.name=query1
+      - --log.level=debug
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --cluster.address=0.0.0.0:10900
+      - --cluster.peers=sidecar1:10900
+    ports:
+      - 19195:10902
+    networks:
+      - whole
+  query2:
+    depends_on:
+      - store
+    image: improbable/thanos:${THANOS_TAG}
+    command:
+      - query
+      - --debug.name=query2
+      - --log.level=debug
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --cluster.address=0.0.0.0:10900
+      - --cluster.peers=sidecar1:10900
+    ports:
+      - 19196:10902
+    networks:
+      - whole
