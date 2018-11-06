@@ -232,7 +232,7 @@ services:
       - --cluster.address=0.0.0.0:10900
       - --cluster.peers=sidecar1:10900
     ports:
-      - 19195:10902
+      - 19101:10902
     networks:
       - whole
   query2:
@@ -248,6 +248,22 @@ services:
       - --cluster.address=0.0.0.0:10900
       - --cluster.peers=sidecar1:10900
     ports:
-      - 19196:10902
+      - 19102:10902
+    networks:
+      - whole
+  query3:
+    depends_on:
+      - store
+    image: improbable/thanos:${THANOS_TAG}
+    command:
+      - query
+      - --debug.name=query2
+      - --log.level=debug
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --cluster.address=0.0.0.0:10900
+      - --cluster.peers=sidecar1:10900
+    ports:
+      - 19103:10902
     networks:
       - whole
