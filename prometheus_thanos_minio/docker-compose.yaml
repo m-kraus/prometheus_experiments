@@ -1,11 +1,16 @@
 #TODO
 # - reloader template
 # - network segmentation
+# - idea: ops-prometheus/sidecar next to store, for store/query monitoring 
 
 version: "3.5"
 
 networks:
-  whole:
+  cloudstorage:
+  ops:
+  c1:
+  c2:
+  c3:
 
 services:
   minio:
@@ -13,7 +18,7 @@ services:
     ports:
       - 19000:9000
     networks:
-      - whole
+      - cloudstorage
     volumes:
       - ./data/minio:/data
     environment:
@@ -24,6 +29,8 @@ services:
     command: -c 'mkdir -p /data/thanosbucket && /usr/bin/minio server /data'
 
   prom1:
+    hostname: prom1
+    domainname: domain.local
     image: prom/prometheus:v2.4.3
     volumes:
       - ./data/prom1:/data
@@ -40,8 +47,10 @@ services:
     ports:
       - 9091:9090
     networks:
-      - whole
+      - c1
   prom2:
+    hostname: prom2
+    domainname: domain.local
     image: prom/prometheus:v2.4.3
     volumes:
       - ./data/prom2:/data
@@ -58,8 +67,10 @@ services:
     ports:
       - 9092:9090
     networks:
-      - whole
+      - c2
   prom3:
+    hostname: prom3
+    domainname: domain.local
     image: prom/prometheus:v2.4.3
     volumes:
       - ./data/prom3:/data
@@ -76,9 +87,11 @@ services:
     ports:
       - 9093:9090
     networks:
-      - whole
+      - c3
 
   sidecar1:
+    hostname: sidecar1
+    domainname: domain.local
     depends_on:
       - prom1
     image: improbable/thanos:${THANOS_TAG}
@@ -97,18 +110,22 @@ services:
       - --tsdb.path=/data
       - --objstore.config-file=/creds/minio.yaml
       - --cluster.address=0.0.0.0:10900
-      - --cluster.peers=sidecar1:10900
+      - --cluster.peers=query1:10900
       #- --reloader.config-file=/template/prometheus.yml.tpl
       #- --reloader.config-envsubst-file=/config/prometheus.yml
     ports:
       - 10901:10902
     networks:
-      - whole
+      - cloudstorage
+      - c1
     environment:
       - PROM_INSTANCE=prom1
       - SIDECAR_INSTANCE=sidecar1
+      - QUERY_INSTANCE=query1
     #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
   sidecar2:
+    hostname: sidecar2
+    domainname: domain.local
     depends_on:
       - prom2
     image: improbable/thanos:${THANOS_TAG}
@@ -127,18 +144,22 @@ services:
       - --tsdb.path=/data
       - --objstore.config-file=/creds/minio.yaml
       - --cluster.address=0.0.0.0:10900
-      - --cluster.peers=sidecar1:10900
+      - --cluster.peers=query2:10900
       #- --reloader.config-file=/template/prometheus.yml.tpl
       #- --reloader.config-envsubst-file=/config/prometheus.yml
     ports:
       - 10902:10902
     networks:
-      - whole
+      - cloudstorage
+      - c2
     environment:
       - PROM_INSTANCE=prom2
       - SIDECAR_INSTANCE=sidecar2
+      - QUERY_INSTANCE=query2
     #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
   sidecar3:
+    hostname: sidecar2
+    domainname: domain.local
     depends_on:
       - prom3
     image: improbable/thanos:${THANOS_TAG}
@@ -157,23 +178,23 @@ services:
       - --tsdb.path=/data
       - --objstore.config-file=/creds/minio.yaml
       - --cluster.address=0.0.0.0:10900
-      - --cluster.peers=sidecar1:10900
+      - --cluster.peers=query3:10900
       #- --reloader.config-file=/template/prometheus.yml.tpl
       #- --reloader.config-envsubst-file=/config/prometheus.yml
     ports:
       - 19193:10902
     networks:
-      - whole
+      - cloudstorage
+      - c2
     environment:
       - PROM_INSTANCE=prom3
       - SIDECAR_INSTANCE=sidecar3
+      - QUERY_INSTANCE=query3
     #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
 
   store:
     depends_on:
-      - sidecar1
-      - sidecar2
-      - sidecar3
+      - minio
     image: improbable/thanos:${THANOS_TAG}
     volumes:
       - ./data/store:/data
@@ -187,11 +208,13 @@ services:
       - --data-dir=/data
       - --objstore.config-file=/creds/minio.yaml
       - --cluster.address=0.0.0.0:10900
-      - --cluster.peers=sidecar1:10900
+      #TODO all query servers 
+      - --cluster.peers=query1:10900
     ports:
       - 10903:10902
     networks:
-      - whole
+      - cloudstorage
+      - ops
     #environment:
     #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
 
@@ -215,7 +238,7 @@ services:
   #  ports:
   #    - 10904:10902
   #  networks:
-  #    - whole
+  #    - cloudstorage
   #  #environment:
   #  #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
 
@@ -230,11 +253,12 @@ services:
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --cluster.address=0.0.0.0:10900
-      - --cluster.peers=sidecar1:10900
+      - --cluster.peers=store:10900
     ports:
-      - 19195:10902
+      - 19101:10902
     networks:
-      - whole
+      - ops
+      - c1
   query2:
     depends_on:
       - store
@@ -246,8 +270,26 @@ services:
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --cluster.address=0.0.0.0:10900
-      - --cluster.peers=sidecar1:10900
+      - --cluster.peers=store:10900
     ports:
-      - 19196:10902
+      - 19102:10902
     networks:
-      - whole
+      - ops
+      - c2
+  query3:
+    depends_on:
+      - store
+    image: improbable/thanos:${THANOS_TAG}
+    command:
+      - query
+      - --debug.name=query3
+      - --log.level=debug
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --cluster.address=0.0.0.0:10900
+      - --cluster.peers=store:10900
+    ports:
+      - 19103:10902
+    networks:
+      - ops
+      - c3

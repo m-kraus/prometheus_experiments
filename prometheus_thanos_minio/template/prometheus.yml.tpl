@@ -22,5 +22,4 @@ scrape_configs:
   scrape_interval: 5s
   static_configs:
   - targets:
-    - "query1:10902"
-    - "query2:10902"
+    - "${QUERY_INSTANCE}:10902"

@@ -24,3 +24,4 @@ scrape_configs:
   - targets:
     - "query1:10902"
     - "query2:10902"
+    - "query3:10902"
