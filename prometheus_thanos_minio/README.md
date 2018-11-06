@@ -9,7 +9,7 @@ For "long-term"-storage there is also a minio instance, which is configured thro
 
 Storage in Google GCS is prepared. Uncomment the environment variable ```GOOGLE_APPLICATION_CREDENTIALS``` in the file ```docker-compose.yaml``` and configure ```creds/gcs-credentials.json.sample``` and ```creds/gcs.yaml.sample``` accordingly.
 
-You can also change ```creds/minio.yaml``` to match your Amazon S3 configuration. See (https://github.com/improbable-eng/) for details.
+You can also change ```creds/minio.yaml``` to match your Amazon S3 configuration. See <https://github.com/improbable-eng/> for details.
 
 ## Starting the experiment
 
@@ -17,11 +17,11 @@ As always run ```docker-compose up```.
 
 ## Accessing the components
 
-Access minio store in your browser via (http://127.0.0.1:19000/minio/) using the credentials ```THANOS:ITSTHANOSTIME```.
+Access minio store in your browser via <http://127.0.0.1:19000/minio/> using the credentials ```THANOS:ITSTHANOSTIME```.
 
-The independent Prometheus instances are accessible via (http://127.0.0.1:9091) (http://127.0.0.1:9092) (http://127.0.0.1:9093).
+The independent Prometheus instances are accessible via <http://127.0.0.1:9091> <http://127.0.0.1:9092> <http://127.0.0.1:9093>.
 
-The Thanos-query instances are accessible via (http://127.0.0.1:19195) (http://127.0.0.1:19196).
+The Thanos-query instances are accessible via <http://127.0.0.1:19101> <http://127.0.0.1:19102> <http://127.0.0.1:19103>.
 
 ## Cleaning up
 
