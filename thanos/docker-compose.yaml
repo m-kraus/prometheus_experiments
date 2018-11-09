@@ -1,11 +1,11 @@
-version: "3.1"
+version: "3.5"
 
 networks:
   c1:
   c2:
   c3:
-  store1:
-  ops1:
+  store:
+  ops:
 
 services:
   minio:
@@ -13,7 +13,7 @@ services:
     volumes:
       - ./data/minio:/data
     networks:
-      - store1
+      - store
     environment:
       - "MINIO_ACCESS_KEY=THANOS"
       - "MINIO_SECRET_KEY=ITSTHANOSTIME"
@@ -24,7 +24,8 @@ services:
       - 19000:9000
 
   c1-prom:
-    image: prom/prometheus:v2.4.3
+    #image: prom/prometheus:v2.4.3
+    image: thanos-exp/prometheus:latest
     volumes:
       - ./data/c1-prom:/data
       - ./config/c1-prom:/config
@@ -42,7 +43,8 @@ services:
     ports:
       - 9091:9090
   c2-prom:
-    image: prom/prometheus:v2.4.3
+    #image: prom/prometheus:v2.4.3
+    image: thanos-exp/prometheus:latest
     volumes:
       - ./data/c2-prom:/data
       - ./config/c2-prom:/config
@@ -60,7 +62,8 @@ services:
     ports:
       - 9092:9090
   c3-prom:
-    image: prom/prometheus:v2.4.3
+    #image: prom/prometheus:v2.4.3
+    image: thanos-exp/prometheus:latest
     volumes:
       - ./data/c3-prom:/data
       - ./config/c3-prom:/config
@@ -79,9 +82,10 @@ services:
       - c3
 
   c1-sidecar:
-    #depends_on:
-    #  - c1-prom
-    image: improbable/thanos:${THANOS_TAG}
+    depends_on:
+      - c1-prom
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
     volumes:
       - ./data/c1-prom:/data
       - ./config/c1-prom:/config
@@ -89,7 +93,7 @@ services:
       - ./creds:/creds
     networks:
       - c1
-      - store1
+      - store
     environment:
       - PROM_INSTANCE=c1-prom
       - SIDECAR_INSTANCE=c1-sidecar
@@ -99,21 +103,22 @@ services:
       - sidecar
       - --debug.name=c1-sidecar
       - --log.level=debug
-      #- --grpc-address=0.0.0.0:10901
-      #- --http-address=0.0.0.0:10902
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c1-prom:9090
       - --tsdb.path=/data
       - --objstore.config-file=/creds/minio.yaml
-      #- --cluster.address=0.0.0.0:10900
+      - --cluster.address=0.0.0.0:10900
       - --cluster.peers=c1-query:10900
       #- --reloader.config-file=/template/prometheus.yml.tpl
       #- --reloader.config-envsubst-file=/config/prometheus.yml
     ports:
       - 10901:10902
   c2-sidecar:
-    #depends_on:
-    #  - c2-prom
-    image: improbable/thanos:${THANOS_TAG}
+    depends_on:
+      - c2-prom
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
     volumes:
       - ./data/c2-prom:/data
       - ./config/c2-prom:/config
@@ -121,7 +126,7 @@ services:
       - ./creds:/creds
     networks:
       - c2
-      - store1
+      - store
     environment:
       - PROM_INSTANCE=c2-prom
       - SIDECAR_INSTANCE=c2-sidecar
@@ -131,29 +136,30 @@ services:
       - sidecar
       - --debug.name=c2-sidecar
       - --log.level=debug
-      #- --grpc-address=0.0.0.0:10901
-      #- --http-address=0.0.0.0:10902
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c2-prom:9090
       - --tsdb.path=/data
       - --objstore.config-file=/creds/minio.yaml
-      #- --cluster.address=0.0.0.0:10900
+      - --cluster.address=0.0.0.0:10900
       - --cluster.peers=c2-query:10900
       #- --reloader.config-file=/template/prometheus.yml.tpl
       #- --reloader.config-envsubst-file=/config/prometheus.yml
     ports:
       - 10902:10902
   c3-sidecar:
-    #depends_on:
-    #  - c3-prom
-    image: improbable/thanos:${THANOS_TAG}
+    depends_on:
+      - c3-prom
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
     volumes:
       - ./data/c3-prom:/data
       - ./config/c3-prom:/config
       - ./template:/template
       - ./creds:/creds
     networks:
-      - c2
-      - store1
+      - c3
+      - store
     environment:
       - PROM_INSTANCE=c3-prom
       - SIDECAR_INSTANCE=c3-sidecar
@@ -163,12 +169,12 @@ services:
       - sidecar
       - --debug.name=c3-sidecar
       - --log.level=debug
-      #- --grpc-address=0.0.0.0:10901
-      #- --http-address=0.0.0.0:10902
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c3-prom:9090
       - --tsdb.path=/data
       - --objstore.config-file=/creds/minio.yaml
-      #- --cluster.address=0.0.0.0:10900
+      - --cluster.address=0.0.0.0:10900
       - --cluster.peers=c3-query:10900
       #- --reloader.config-file=/template/prometheus.yml.tpl
       #- --reloader.config-envsubst-file=/config/prometheus.yml
@@ -176,40 +182,42 @@ services:
       - 19193:10902
 
   store:
-    #depends_on:
-    #  - minio
-    image: improbable/thanos:${THANOS_TAG}
+    depends_on:
+      - minio
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
     volumes:
       - ./data/store:/data
       - ./creds:/creds
     networks:
-      - ops1
-      - store1
+      - ops
+      - store
     #environment:
     #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
     command:
       - store
       - --debug.name=store
       - --log.level=debug
-      #- --grpc-address=0.0.0.0:10901
-      #- --http-address=0.0.0.0:10902
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
       - --data-dir=/data
       - --objstore.config-file=/creds/minio.yaml
-      #- --cluster.address=0.0.0.0:10900
+      - --cluster.address=0.0.0.0:10900
       #TODO all query servers 
       - --cluster.peers=c1-query:10900
     ports:
       - 10903:10902
 
   #compact:
-  #  #depends_on:
-  #  #  - store
-  #  image: improbable/thanos:${THANOS_TAG}
+  #  depends_on:
+  #    - store
+  #  #image: improbable/thanos:${THANOS_TAG}
+  #  image: thanos-exp/thanos:latest
   #  volumes:
   #    - ./data/compact:/data
   #    - ./creds:/creds
   #  networks:
-  #    - store1
+  #    - store
   #  #environment:
   #  #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
   #  command:
@@ -226,53 +234,56 @@ services:
   #    - 10904:10902
 
   c1-query:
-    #depends_on:
-    #  - store
-    image: improbable/thanos:${THANOS_TAG}
+    depends_on:
+      - store
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
     networks:
       - c1
-      - ops1
+      - ops
     command:
       - query
       - --debug.name=c1-query
       - --log.level=debug
-      #- --grpc-address=0.0.0.0:10901
-      #- --http-address=0.0.0.0:10902
-      #- --cluster.address=0.0.0.0:10900
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --cluster.address=0.0.0.0:10900
       - --cluster.peers=store:10900
     ports:
       - 19101:10902
   c2-query:
-    #depends_on:
-    #  - store
-    image: improbable/thanos:${THANOS_TAG}
+    depends_on:
+      - store
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
     networks:
       - c2
-      - ops1
+      - ops
     command:
       - query
       - --debug.name=c2-query
       - --log.level=debug
-      #- --grpc-address=0.0.0.0:10901
-      #- --http-address=0.0.0.0:10902
-      #- --cluster.address=0.0.0.0:10900
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --cluster.address=0.0.0.0:10900
       - --cluster.peers=store:10900
     ports:
       - 19102:10902
   c3-query:
-    #depends_on:
-    #  - store
-    image: improbable/thanos:${THANOS_TAG}
+    depends_on:
+      - store
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
     networks:
       - c3
-      - ops1
+      - ops
     command:
       - query
       - --debug.name=c3-query
       - --log.level=debug
-      #- --grpc-address=0.0.0.0:10901
-      #- --http-address=0.0.0.0:10902
-      #- --cluster.address=0.0.0.0:10900
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --cluster.address=0.0.0.0:10900
       - --cluster.peers=store:10900
     ports:
       - 19103:10902
