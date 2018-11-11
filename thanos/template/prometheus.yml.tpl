@@ -1,7 +1,7 @@
 global:
   external_labels:
     cluster: cluster
-    prometheus: prom-1
+    prometheus: '${PROM_INSTANCE}'
 scrape_configs:
 - job_name: prometheus
   scrape_interval: 5s
@@ -12,7 +12,7 @@ scrape_configs:
   scrape_interval: 5s
   static_configs:
   - targets:
-    - "sidecar1:10902"
+    - "${SIDECAR_INSTANCE}:10902"
 - job_name: thanos-store
   scrape_interval: 5s
   static_configs:
@@ -22,5 +22,4 @@ scrape_configs:
   scrape_interval: 5s
   static_configs:
   - targets:
-    - "query1:10902"
-    - "query2:10902"
+    - "${QUERY_INSTANCE}:10902"
