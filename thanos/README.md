@@ -1,6 +1,6 @@
 # Thanos experiment
 
-This expermient spins up 3 independent Prometheus instances together with 3 Thaons-sidecars. On kubernetes this would be best within the same Pod.
+This experiment spins up 3 independent Prometheus instances together with 3 Thaons-sidecars. On kubernetes this would be best within the same Pod.
 Additinally a Thanos-store und two Thanos-queries are configured. A Thanos-compact is defined, but commented out at the moment.
 
 For "long-term"-storage there is also a minio instance, which is configured through ```creds/minio.yaml``` for the Thanos-sidecars and Thanos-store.
@@ -13,7 +13,10 @@ You can also change ```creds/minio.yaml``` to match your Amazon S3 configuration
 
 ## Starting the experiment
 
-As always run ```docker-compose up```.
+```
+make
+docker-compose up
+```
 
 ## Accessing the components
 
