@@ -1,17 +1,22 @@
 version: "3.5"
 
+volumes:
+  minio: {}
+  c1-prom: {}
+  c2-prom: {}
+  c3-prom: {}
+  #compact: {}
+  store: {}
+
 networks:
-  c1:
-  c2:
-  c3:
   store:
-  ops:
+  thanos:
 
 services:
   minio:
     image: minio/minio:latest
     volumes:
-      - ./data/minio:/data
+      - minio:/export
     networks:
       - store
     environment:
@@ -19,7 +24,7 @@ services:
       - "MINIO_SECRET_KEY=ITSTHANOSTIME"
     entrypoint: sh
     # This is a workaropund for creating the bucket ""
-    command: -c 'mkdir -p /data/thanosbucket && /usr/bin/minio server /data'
+    command: -c 'mkdir -p /export/thanosbucket && /usr/bin/minio server /export'
     ports:
       - 19000:9000
 
@@ -27,14 +32,14 @@ services:
     #image: prom/prometheus:v2.4.3
     image: thanos-exp/prometheus:latest
     volumes:
-      - ./data/c1-prom:/data
       - ./config/c1-prom:/config
+      - c1-prom:/prometheus
     networks:
-      - c1
+      - thanos
     command:
       - --web.listen-address=0.0.0.0:9090
       - --config.file=/config/prometheus.yml
-      - --storage.tsdb.path=/data
+      - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention=6h
       - --storage.tsdb.min-block-duration=1h
       - --storage.tsdb.max-block-duration=1h
@@ -46,14 +51,14 @@ services:
     #image: prom/prometheus:v2.4.3
     image: thanos-exp/prometheus:latest
     volumes:
-      - ./data/c2-prom:/data
       - ./config/c2-prom:/config
+      - c2-prom:/prometheus
     networks:
-      - c2
+      - thanos
     command:
       - --web.listen-address=0.0.0.0:9090
       - --config.file=/config/prometheus.yml
-      - --storage.tsdb.path=/data
+      - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention=6h
       - --storage.tsdb.min-block-duration=1h
       - --storage.tsdb.max-block-duration=1h
@@ -65,12 +70,12 @@ services:
     #image: prom/prometheus:v2.4.3
     image: thanos-exp/prometheus:latest
     volumes:
-      - ./data/c3-prom:/data
       - ./config/c3-prom:/config
+      - c3-prom:/prometheus
     command:
       - --web.listen-address=0.0.0.0:9090
       - --config.file=/config/prometheus.yml
-      - --storage.tsdb.path=/data
+      - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention=6h
       - --storage.tsdb.min-block-duration=1h
       - --storage.tsdb.max-block-duration=1h
@@ -79,7 +84,7 @@ services:
     ports:
       - 9093:9090
     networks:
-      - c3
+      - thanos
 
   c1-sidecar:
     depends_on:
@@ -87,12 +92,12 @@ services:
     #image: improbable/thanos:${THANOS_TAG}
     image: thanos-exp/thanos:latest
     volumes:
-      - ./data/c1-prom:/data
       - ./config/c1-prom:/config
       - ./template:/template
       - ./creds:/creds
+      - c1-prom:/prometheus
     networks:
-      - c1
+      - thanos
       - store
     environment:
       - PROM_INSTANCE=c1-prom
@@ -106,7 +111,7 @@ services:
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c1-prom:9090
-      - --tsdb.path=/data
+      - --tsdb.path=/prometheus
       - --objstore.config-file=/creds/minio.yaml
       - --cluster.address=0.0.0.0:10900
       - --cluster.peers=c1-query:10900
@@ -120,12 +125,12 @@ services:
     #image: improbable/thanos:${THANOS_TAG}
     image: thanos-exp/thanos:latest
     volumes:
-      - ./data/c2-prom:/data
       - ./config/c2-prom:/config
       - ./template:/template
       - ./creds:/creds
+      - c2-prom:/prometheus
     networks:
-      - c2
+      - thanos
       - store
     environment:
       - PROM_INSTANCE=c2-prom
@@ -139,7 +144,7 @@ services:
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c2-prom:9090
-      - --tsdb.path=/data
+      - --tsdb.path=/prometheus
       - --objstore.config-file=/creds/minio.yaml
       - --cluster.address=0.0.0.0:10900
       - --cluster.peers=c2-query:10900
@@ -153,12 +158,12 @@ services:
     #image: improbable/thanos:${THANOS_TAG}
     image: thanos-exp/thanos:latest
     volumes:
-      - ./data/c3-prom:/data
       - ./config/c3-prom:/config
       - ./template:/template
       - ./creds:/creds
+      - c3-prom:/prometheus
     networks:
-      - c3
+      - thanos
       - store
     environment:
       - PROM_INSTANCE=c3-prom
@@ -172,7 +177,7 @@ services:
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c3-prom:9090
-      - --tsdb.path=/data
+      - --tsdb.path=/prometheus
       - --objstore.config-file=/creds/minio.yaml
       - --cluster.address=0.0.0.0:10900
       - --cluster.peers=c3-query:10900
@@ -187,10 +192,10 @@ services:
     #image: improbable/thanos:${THANOS_TAG}
     image: thanos-exp/thanos:latest
     volumes:
-      - ./data/store:/data
       - ./creds:/creds
+      - store:/thanos_store
     networks:
-      - ops
+      - thanos
       - store
     #environment:
     #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
@@ -200,7 +205,7 @@ services:
       - --log.level=debug
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
-      - --data-dir=/data
+      - --data-dir=/thanos_store
       - --objstore.config-file=/creds/minio.yaml
       - --cluster.address=0.0.0.0:10900
       #TODO all query servers 
@@ -214,8 +219,8 @@ services:
   #  #image: improbable/thanos:${THANOS_TAG}
   #  image: thanos-exp/thanos:latest
   #  volumes:
-  #    - ./data/compact:/data
   #    - ./creds:/creds
+  #    - compact:/thanos_compact
   #  networks:
   #    - store
   #  #environment:
@@ -225,7 +230,7 @@ services:
   #    - --debug.name=compact
   #    - --log.level=debug
   #    - --http-address=0.0.0.0:10902
-  #    - --data-dir=/data
+  #    - --data-dir=/thanos_compact
   #    - --objstore.config-file=/creds/minio.yaml
   #    - --retention.resolution-raw=1d
   #    - --retention.resolution-5m=2d
@@ -239,8 +244,7 @@ services:
     #image: improbable/thanos:${THANOS_TAG}
     image: thanos-exp/thanos:latest
     networks:
-      - c1
-      - ops
+      - thanos
     command:
       - query
       - --debug.name=c1-query
@@ -257,8 +261,7 @@ services:
     #image: improbable/thanos:${THANOS_TAG}
     image: thanos-exp/thanos:latest
     networks:
-      - c2
-      - ops
+      - thanos
     command:
       - query
       - --debug.name=c2-query
@@ -275,8 +278,7 @@ services:
     #image: improbable/thanos:${THANOS_TAG}
     image: thanos-exp/thanos:latest
     networks:
-      - c3
-      - ops
+      - thanos
     command:
       - query
       - --debug.name=c3-query

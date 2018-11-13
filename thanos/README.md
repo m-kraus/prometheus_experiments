@@ -15,7 +15,14 @@ You can also change ```creds/minio.yaml``` to match your Amazon S3 configuration
 
 ```
 make
-docker-compose up
+docker-compose -f docker-compose-fullcluster.yaml up
+```
+
+or
+
+```
+make
+docker-compose -f docker-compose-segregated.yaml up
 ```
 
 ## Accessing the components
@@ -26,6 +33,14 @@ The independent Prometheus instances are accessible via <http://127.0.0.1:9091> 
 
 The Thanos-query instances are accessible via <http://127.0.0.1:19101> <http://127.0.0.1:19102> <http://127.0.0.1:19103>.
 
-## Cleaning up
+## Stopping the experiment
 
-For cleaning up data written in the directory ```data/``` please run ```cleanup.sh```.
+```
+docker-compose -f docker-compose-fullcluster.yaml down -v
+```
+
+or
+
+```
+docker-compose -f docker-compose-segregated.yaml down -v
+```
