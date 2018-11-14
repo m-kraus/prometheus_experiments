@@ -9,8 +9,7 @@ volumes:
   store: {}
 
 networks:
-  store:
-  thanos:
+  whole:
 
 services:
   minio:
@@ -18,7 +17,7 @@ services:
     volumes:
       - minio:/export
     networks:
-      - store
+      - whole
     environment:
       - "MINIO_ACCESS_KEY=THANOS"
       - "MINIO_SECRET_KEY=ITSTHANOSTIME"
@@ -35,7 +34,7 @@ services:
       - ./config/c1-prom:/config
       - c1-prom:/prometheus
     networks:
-      - thanos
+      - whole
     command:
       - --web.listen-address=0.0.0.0:9090
       - --config.file=/config/prometheus.yml
@@ -54,7 +53,7 @@ services:
       - ./config/c2-prom:/config
       - c2-prom:/prometheus
     networks:
-      - thanos
+      - whole
     command:
       - --web.listen-address=0.0.0.0:9090
       - --config.file=/config/prometheus.yml
@@ -84,7 +83,7 @@ services:
     ports:
       - 9093:9090
     networks:
-      - thanos
+      - whole
 
   c1-sidecar:
     depends_on:
@@ -97,8 +96,7 @@ services:
       - ./creds:/creds
       - c1-prom:/prometheus
     networks:
-      - thanos
-      - store
+      - whole
     environment:
       - PROM_INSTANCE=c1-prom
       - SIDECAR_INSTANCE=c1-sidecar
@@ -130,8 +128,7 @@ services:
       - ./creds:/creds
       - c2-prom:/prometheus
     networks:
-      - thanos
-      - store
+      - whole
     environment:
       - PROM_INSTANCE=c2-prom
       - SIDECAR_INSTANCE=c2-sidecar
@@ -163,8 +160,7 @@ services:
       - ./creds:/creds
       - c3-prom:/prometheus
     networks:
-      - thanos
-      - store
+      - whole
     environment:
       - PROM_INSTANCE=c3-prom
       - SIDECAR_INSTANCE=c3-sidecar
@@ -195,8 +191,7 @@ services:
       - ./creds:/creds
       - store:/thanos_store
     networks:
-      - thanos
-      - store
+      - whole
     #environment:
     #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
     command:
@@ -222,7 +217,7 @@ services:
   #    - ./creds:/creds
   #    - compact:/thanos_compact
   #  networks:
-  #    - store
+  #    - whole
   #  #environment:
   #  #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
   #  command:
@@ -244,7 +239,7 @@ services:
     #image: improbable/thanos:${THANOS_TAG}
     image: thanos-exp/thanos:latest
     networks:
-      - thanos
+      - whole
     command:
       - query
       - --debug.name=c1-query
@@ -261,7 +256,7 @@ services:
     #image: improbable/thanos:${THANOS_TAG}
     image: thanos-exp/thanos:latest
     networks:
-      - thanos
+      - whole
     command:
       - query
       - --debug.name=c2-query
@@ -278,7 +273,7 @@ services:
     #image: improbable/thanos:${THANOS_TAG}
     image: thanos-exp/thanos:latest
     networks:
-      - thanos
+      - whole
     command:
       - query
       - --debug.name=c3-query

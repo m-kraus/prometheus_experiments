@@ -15,7 +15,7 @@ You can also change ```creds/minio.yaml``` to match your Amazon S3 configuration
 
 ```
 make
-docker-compose -f docker-compose-fullcluster.yaml up
+docker-compose -f docker-compose-unsegregated.yaml up
 ```
 
 or
@@ -36,7 +36,7 @@ The Thanos-query instances are accessible via <http://127.0.0.1:19101> <http://1
 ## Stopping the experiment
 
 ```
-docker-compose -f docker-compose-fullcluster.yaml down -v
+docker-compose -f docker-compose-unsegregated.yaml down -v
 ```
 
 or
