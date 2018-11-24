@@ -17,7 +17,7 @@ You can also change ```creds/c[1|2|3]-s3.yaml``` to match your Amazon S3 configu
 
 ```
 make
-docker-compose -f docker-compose-unsegregated.yaml up
+docker-compose up
 ```
 
 ## Accessing the components
