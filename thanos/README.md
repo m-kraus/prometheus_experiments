@@ -1,15 +1,17 @@
 # Thanos experiment
 
 This experiment spins up 3 independent Prometheus instances together with 3 Thaons-sidecars. On kubernetes this would be best within the same Pod.
-Additinally a Thanos-store und two Thanos-queries are configured. A Thanos-compact is defined, but commented out at the moment.
+Additionally a Thanos-store and a Thanos-query for each Prometheus instance is configured as well.
 
-For "long-term"-storage there is also a minio instance, which is configured through ```creds/minio.yaml``` for the Thanos-sidecars and Thanos-store.
+Finally a "meta"-Thanos-query is configured to provide a "fleet-wide" view over all instances.
+
+For "long-term"-storage there are also minio instances, which are configured through ```creds/c[1|2|3].s3.yaml``` for the Thanos-sidecars and Thanos-stores, mimicking dediacted S3 storage.
 
 ## Storage options
 
 Storage in Google GCS is prepared. Uncomment the environment variable ```GOOGLE_APPLICATION_CREDENTIALS``` in the file ```docker-compose.yaml``` and configure ```creds/gcs-credentials.json.sample``` and ```creds/gcs.yaml.sample``` accordingly.
 
-You can also change ```creds/minio.yaml``` to match your Amazon S3 configuration. See <https://github.com/improbable-eng/> for details.
+You can also change ```creds/c[1|2|3]-s3.yaml``` to match your Amazon S3 configuration. See <https://github.com/improbable-eng/> for details.
 
 ## Starting the experiment
 
@@ -18,29 +20,16 @@ make
 docker-compose -f docker-compose-unsegregated.yaml up
 ```
 
-or
-
-```
-make
-docker-compose -f docker-compose-segregated.yaml up
-```
-
 ## Accessing the components
 
-Access minio store in your browser via <http://127.0.0.1:19000/minio/> using the credentials ```THANOS:ITSTHANOSTIME```.
+Access minio store in your browser via <http://127.0.0.1:19010/minio/> <http://127.0.0.1:19020/minio/> <http://127.0.0.1:19030/minio/>using the credentials ```THANOS:ITSTHANOSTIME```.
 
-The independent Prometheus instances are accessible via <http://127.0.0.1:9091> <http://127.0.0.1:9092> <http://127.0.0.1:9093>.
+The independent Prometheus instances are accessible via <http://127.0.0.1:19011> <http://127.0.0.1:19021> <http://127.0.0.1:19031>.
 
-The Thanos-query instances are accessible via <http://127.0.0.1:19101> <http://127.0.0.1:19102> <http://127.0.0.1:19103>.
+The Thanos-query instances are accessible via <http://127.0.0.1:19013> <http://127.0.0.1:19023> <http://127.0.0.1:19033> and the meta-instance via <http://127.0.0.1:19043>.
 
 ## Stopping the experiment
 
 ```
-docker-compose -f docker-compose-unsegregated.yaml down -v
-```
-
-or
-
-```
-docker-compose -f docker-compose-segregated.yaml down -v
+docker-compose down -v
 ```

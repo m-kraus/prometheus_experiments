@@ -1,0 +1,383 @@
+version: "3.5"
+
+volumes:
+  c1-s3: {}
+  c2-s3: {}
+  c3-s3: {}
+  c1-prom: {}
+  c2-prom: {}
+  c3-prom: {}
+  c1-store: {}
+  c2-store: {}
+  c3-store: {}
+
+networks:
+  c1:
+  c2:
+  c3:
+  meta:
+
+services:
+  c1-s3:
+    image: minio/minio:latest
+    volumes:
+      - c1-s3:/export
+    networks:
+      - c1
+    environment:
+      - "MINIO_ACCESS_KEY=THANOS"
+      - "MINIO_SECRET_KEY=ITSTHANOSTIME"
+    entrypoint: sh
+    # This is a workaropund for creating the bucket
+    command: -c 'mkdir -p /export/thanosbucket && /usr/bin/minio server /export'
+    ports:
+      - 19010:9000
+  c1-prom:
+    depends_on:
+      - c1-s3
+    #image: prom/prometheus:v2.4.3
+    image: thanos-exp/prometheus:latest
+    volumes:
+      - ./config/c1-prom:/config
+      - c1-prom:/prometheus
+    networks:
+      - c1
+    command:
+      - --web.listen-address=0.0.0.0:9090
+      - --config.file=/config/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      # recommended > 3x block-duration
+      - --storage.tsdb.retention=3h
+      # recomended 2h
+      - --storage.tsdb.min-block-duration=1h
+      # recomended 2h
+      - --storage.tsdb.max-block-duration=1h
+      # needed for reloading
+      - --web.enable-lifecycle
+      - --log.level=warn
+    ports:
+      - 19011:9090
+  c1-sidecar:
+    depends_on:
+      - c1-prom
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
+    volumes:
+      - ./config/c1-prom:/config
+      - ./template:/template
+      - ./creds:/creds
+      - c1-prom:/prometheus
+    networks:
+      - c1
+    environment:
+      - PROM_INSTANCE=c1-prom
+      - SIDECAR_INSTANCE=c1-sidecar
+      - QUERY_INSTANCE=c1-query
+    #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
+    command:
+      - sidecar
+      - --debug.name=c1-sidecar
+      - --log.level=info
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --prometheus.url=http://c1-prom:9090
+      - --tsdb.path=/prometheus
+      - --objstore.config-file=/creds/c1-s3.yaml
+      #- --reloader.config-file=/template/prometheus.yml.tpl
+      #- --reloader.config-envsubst-file=/config/prometheus.yml
+      #- --reloader.rule-dir=TODO
+    ports:
+      - 19012:10902
+  c1-query:
+    depends_on:
+      - c1-prom
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
+    networks:
+      - c1
+      - meta
+    command:
+      - query
+      - --debug.name=c1-query
+      - --log.level=info
+      # Test this setting
+      - --query.auto-downsampling
+      # Test this setting
+      - --query.replica-label=replica
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --store=c1-sidecar:10901
+      - --store=c1-store:10901
+    ports:
+      - 19013:10902
+  c1-store:
+    depends_on:
+      - c1-prom
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
+    volumes:
+      - ./creds:/creds
+      - c1-store:/thanos_store
+    networks:
+      - c1
+    command:
+      - store
+      - --debug.name=c1-store
+      - --log.level=info
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --data-dir=/thanos_store
+      - --objstore.config-file=/creds/c1-s3.yaml
+    ports:
+      - 19014:10902
+
+  c2-s3:
+    image: minio/minio:latest
+    volumes:
+      - c2-s3:/export
+    networks:
+      - c2
+    environment:
+      - "MINIO_ACCESS_KEY=THANOS"
+      - "MINIO_SECRET_KEY=ITSTHANOSTIME"
+    entrypoint: sh
+    # This is a workaropund for creating the bucket
+    command: -c 'mkdir -p /export/thanosbucket && /usr/bin/minio server /export'
+    ports:
+      - 19020:9000
+  c2-prom:
+    depends_on:
+      - c2-s3
+    #image: prom/prometheus:v2.4.3
+    image: thanos-exp/prometheus:latest
+    volumes:
+      - ./config/c2-prom:/config
+      - c2-prom:/prometheus
+    networks:
+      - c2
+    command:
+      - --web.listen-address=0.0.0.0:9090
+      - --config.file=/config/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      # recommended > 3x block-duration
+      - --storage.tsdb.retention=3h
+      # recomended 2h
+      - --storage.tsdb.min-block-duration=1h
+      # recomended 2h
+      - --storage.tsdb.max-block-duration=1h
+      # needed for reloading
+      - --web.enable-lifecycle
+      - --log.level=warn
+    ports:
+      - 19021:9090
+  c2-sidecar:
+    depends_on:
+      - c2-prom
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
+    volumes:
+      - ./config/c2-prom:/config
+      - ./template:/template
+      - ./creds:/creds
+      - c2-prom:/prometheus
+    networks:
+      - c2
+    environment:
+      - PROM_INSTANCE=c2-prom
+      - SIDECAR_INSTANCE=c2-sidecar
+      - QUERY_INSTANCE=c2-query
+    #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
+    command:
+      - sidecar
+      - --debug.name=c2-sidecar
+      - --log.level=info
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --prometheus.url=http://c2-prom:9090
+      - --tsdb.path=/prometheus
+      - --objstore.config-file=/creds/c2-s3.yaml
+      #- --reloader.config-file=/template/prometheus.yml.tpl
+      #- --reloader.config-envsubst-file=/config/prometheus.yml
+      #- --reloader.rule-dir=TODO
+    ports:
+      - 19022:10902
+  c2-query:
+    depends_on:
+      - c2-prom
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
+    networks:
+      - c2
+      - meta
+    command:
+      - query
+      - --debug.name=c2-query
+      - --log.level=info
+      # Test this setting
+      - --query.auto-downsampling
+      # Test this setting
+      - --query.replica-label=replica
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --store=c2-sidecar:10901
+      - --store=c2-store:10901
+    ports:
+      - 19023:10902
+  c2-store:
+    depends_on:
+      - c2-prom
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
+    volumes:
+      - ./creds:/creds
+      - c2-store:/thanos_store
+    networks:
+      - c2
+    command:
+      - store
+      - --debug.name=c2-store
+      - --log.level=info
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --data-dir=/thanos_store
+      - --objstore.config-file=/creds/c2-s3.yaml
+    ports:
+      - 19024:10902
+
+  c3-s3:
+    image: minio/minio:latest
+    volumes:
+      - c3-s3:/export
+    networks:
+      - c3
+    environment:
+      - "MINIO_ACCESS_KEY=THANOS"
+      - "MINIO_SECRET_KEY=ITSTHANOSTIME"
+    entrypoint: sh
+    # This is a workaropund for creating the bucket
+    command: -c 'mkdir -p /export/thanosbucket && /usr/bin/minio server /export'
+    ports:
+      - 19030:9000
+  c3-prom:
+    depends_on:
+      - c3-s3
+    #image: prom/prometheus:v2.4.3
+    image: thanos-exp/prometheus:latest
+    volumes:
+      - ./config/c3-prom:/config
+      - c3-prom:/prometheus
+    networks:
+      - c3
+    command:
+      - --web.listen-address=0.0.0.0:9090
+      - --config.file=/config/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      # recommended > 3x block-duration
+      - --storage.tsdb.retention=3h
+      # recomended 2h
+      - --storage.tsdb.min-block-duration=1h
+      # recomended 2h
+      - --storage.tsdb.max-block-duration=1h
+      # needed for reloading
+      - --web.enable-lifecycle
+      - --log.level=warn
+    ports:
+      - 19031:9090
+  c3-sidecar:
+    depends_on:
+      - c3-prom
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
+    volumes:
+      - ./config/c3-prom:/config
+      - ./template:/template
+      - ./creds:/creds
+      - c3-prom:/prometheus
+    networks:
+      - c3
+    environment:
+      - PROM_INSTANCE=c3-prom
+      - SIDECAR_INSTANCE=c3-sidecar
+      - QUERY_INSTANCE=c3-query
+    #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
+    command:
+      - sidecar
+      - --debug.name=c3-sidecar
+      - --log.level=info
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --prometheus.url=http://c3-prom:9090
+      - --tsdb.path=/prometheus
+      - --objstore.config-file=/creds/c3-s3.yaml
+      #- --reloader.config-file=/template/prometheus.yml.tpl
+      #- --reloader.config-envsubst-file=/config/prometheus.yml
+      #- --reloader.rule-dir=TODO
+    ports:
+      - 19032:10902
+  c3-query:
+    depends_on:
+      - c3-prom
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
+    networks:
+      - c3
+      - meta
+    command:
+      - query
+      - --debug.name=c3-query
+      - --log.level=info
+      # Test this setting
+      - --query.auto-downsampling
+      # Test this setting
+      - --query.replica-label=replica
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --store=c3-sidecar:10901
+      - --store=c3-store:10901
+    ports:
+      - 19033:10902
+  c3-store:
+    depends_on:
+      - c3-prom
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
+    volumes:
+      - ./creds:/creds
+      - c3-store:/thanos_store
+    networks:
+      - c3
+    command:
+      - store
+      - --debug.name=c3-store
+      - --log.level=info
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --data-dir=/thanos_store
+      - --objstore.config-file=/creds/c3-s3.yaml
+    ports:
+      - 19034:10902
+
+  meta-query:
+    depends_on:
+      - c1-query
+      - c2-query
+      - c3-query
+    #image: improbable/thanos:${THANOS_TAG}
+    image: thanos-exp/thanos:latest
+    networks:
+      - meta
+    command:
+      - query
+      - --debug.name=meta-query
+      - --log.level=info
+      # Test this setting
+      - --query.auto-downsampling
+      # Test this setting
+      - --query.replica-label=replica
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --store=c1-query:10901
+      - --store=c2-query:10901
+      - --store=c3-query:10901
+    ports:
+      - 19043:10902

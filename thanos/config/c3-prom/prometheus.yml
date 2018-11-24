@@ -17,11 +17,9 @@ scrape_configs:
   scrape_interval: 5s
   static_configs:
   - targets:
-    - "store:10902"
+    - "c3-store:10902"
 - job_name: thanos-query
   scrape_interval: 5s
   static_configs:
   - targets:
-    - "c1-query:10902"
-    - "c2-query:10902"
     - "c3-query:10902"
