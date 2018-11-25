@@ -10,6 +10,7 @@ volumes:
   c1-store: {}
   c2-store: {}
   c3-store: {}
+  meta-grafana: {}
 
 networks:
   c1:
@@ -47,7 +48,7 @@ services:
       - --config.file=/config/prometheus.yml
       - --storage.tsdb.path=/prometheus
       # recommended > 3x block-duration
-      - --storage.tsdb.retention=3h
+      - --storage.tsdb.retention=6h
       # recomended 2h
       - --storage.tsdb.min-block-duration=1h
       # recomended 2h
@@ -77,7 +78,7 @@ services:
     command:
       - sidecar
       - --debug.name=c1-sidecar
-      - --log.level=info
+      - --log.level=debug
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c1-prom:9090
@@ -99,7 +100,7 @@ services:
     command:
       - query
       - --debug.name=c1-query
-      - --log.level=info
+      - --log.level=debug
       # Test this setting
       - --query.auto-downsampling
       # Test this setting
@@ -123,7 +124,7 @@ services:
     command:
       - store
       - --debug.name=c1-store
-      - --log.level=info
+      - --log.level=debug
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --data-dir=/thanos_store
@@ -160,7 +161,7 @@ services:
       - --config.file=/config/prometheus.yml
       - --storage.tsdb.path=/prometheus
       # recommended > 3x block-duration
-      - --storage.tsdb.retention=3h
+      - --storage.tsdb.retention=6h
       # recomended 2h
       - --storage.tsdb.min-block-duration=1h
       # recomended 2h
@@ -190,7 +191,7 @@ services:
     command:
       - sidecar
       - --debug.name=c2-sidecar
-      - --log.level=info
+      - --log.level=debug
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c2-prom:9090
@@ -212,7 +213,7 @@ services:
     command:
       - query
       - --debug.name=c2-query
-      - --log.level=info
+      - --log.level=debug
       # Test this setting
       - --query.auto-downsampling
       # Test this setting
@@ -236,7 +237,7 @@ services:
     command:
       - store
       - --debug.name=c2-store
-      - --log.level=info
+      - --log.level=debug
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --data-dir=/thanos_store
@@ -273,7 +274,7 @@ services:
       - --config.file=/config/prometheus.yml
       - --storage.tsdb.path=/prometheus
       # recommended > 3x block-duration
-      - --storage.tsdb.retention=3h
+      - --storage.tsdb.retention=6h
       # recomended 2h
       - --storage.tsdb.min-block-duration=1h
       # recomended 2h
@@ -303,7 +304,7 @@ services:
     command:
       - sidecar
       - --debug.name=c3-sidecar
-      - --log.level=info
+      - --log.level=debug
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c3-prom:9090
@@ -325,7 +326,7 @@ services:
     command:
       - query
       - --debug.name=c3-query
-      - --log.level=info
+      - --log.level=debug
       # Test this setting
       - --query.auto-downsampling
       # Test this setting
@@ -349,7 +350,7 @@ services:
     command:
       - store
       - --debug.name=c3-store
-      - --log.level=info
+      - --log.level=debug
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --data-dir=/thanos_store
@@ -369,7 +370,7 @@ services:
     command:
       - query
       - --debug.name=meta-query
-      - --log.level=info
+      - --log.level=debug
       # Test this setting
       - --query.auto-downsampling
       # Test this setting
@@ -381,3 +382,18 @@ services:
       - --store=c3-query:10901
     ports:
       - 19043:10902
+
+  grafana:
+    image: grafana/grafana:5.3.4
+    ports:
+      - 13000:3000
+    volumes:
+      - ./grafana/provisioning:/provisioning
+      - meta-grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_PATHS_PROVISIONING=/provisioning
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - meta
