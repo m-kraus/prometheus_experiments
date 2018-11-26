@@ -50,9 +50,9 @@ services:
       # recommended > 3x block-duration
       - --storage.tsdb.retention=6h
       # recomended 2h
-      - --storage.tsdb.min-block-duration=1h
+      - --storage.tsdb.min-block-duration=2h
       # recomended 2h
-      - --storage.tsdb.max-block-duration=1h
+      - --storage.tsdb.max-block-duration=2h
       # needed for reloading
       - --web.enable-lifecycle
       - --log.level=warn
@@ -163,9 +163,9 @@ services:
       # recommended > 3x block-duration
       - --storage.tsdb.retention=6h
       # recomended 2h
-      - --storage.tsdb.min-block-duration=1h
+      - --storage.tsdb.min-block-duration=2h
       # recomended 2h
-      - --storage.tsdb.max-block-duration=1h
+      - --storage.tsdb.max-block-duration=2h
       # needed for reloading
       - --web.enable-lifecycle
       - --log.level=warn
@@ -276,9 +276,9 @@ services:
       # recommended > 3x block-duration
       - --storage.tsdb.retention=6h
       # recomended 2h
-      - --storage.tsdb.min-block-duration=1h
+      - --storage.tsdb.min-block-duration=2h
       # recomended 2h
-      - --storage.tsdb.max-block-duration=1h
+      - --storage.tsdb.max-block-duration=2h
       # needed for reloading
       - --web.enable-lifecycle
       - --log.level=warn
@@ -395,6 +395,5 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=pass
       - GF_PATHS_PROVISIONING=/provisioning
       - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_EXPLORE_ENABLED=true
     networks:
       - meta
