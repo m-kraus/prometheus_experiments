@@ -71,6 +71,7 @@ services:
     networks:
       - c1
     environment:
+      - CLUSTER=c1
       - PROM_INSTANCE=c1-prom
       - SIDECAR_INSTANCE=c1-sidecar
       - QUERY_INSTANCE=c1-query
@@ -184,6 +185,7 @@ services:
     networks:
       - c2
     environment:
+      - CLUSTER=c2
       - PROM_INSTANCE=c2-prom
       - SIDECAR_INSTANCE=c2-sidecar
       - QUERY_INSTANCE=c2-query
@@ -297,6 +299,7 @@ services:
     networks:
       - c3
     environment:
+      - CLUSTER=c3
       - PROM_INSTANCE=c3-prom
       - SIDECAR_INSTANCE=c3-sidecar
       - QUERY_INSTANCE=c3-query
