@@ -13,6 +13,12 @@ Storage in Google GCS is prepared. Uncomment the environment variable ```GOOGLE_
 
 You can also change ```creds/c[1|2|3]-s3.yaml``` to match your Amazon S3 configuration. See <https://github.com/improbable-eng/> for details.
 
+## Diagram
+
+![Architecture](Thanos_Architecture.png)
+
+[Draw.io source](Thanos_Architecture.xml)
+
 ## Starting the experiment
 
 ```
