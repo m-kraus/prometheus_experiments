@@ -10,6 +10,9 @@ volumes:
   c1-store: {}
   c2-store: {}
   c3-store: {}
+  c1-grafana: {}
+  c2-grafana: {}
+  c3-grafana: {}
   meta-grafana: {}
 
 networks:
@@ -36,8 +39,7 @@ services:
   c1-prom:
     depends_on:
       - c1-s3
-    #image: prom/prometheus:v2.4.3
-    image: thanos-exp/prometheus:latest
+    image: prom/prometheus:v2.5.0
     volumes:
       - ./config/c1-prom:/config
       - c1-prom:/prometheus
@@ -61,8 +63,7 @@ services:
   c1-sidecar:
     depends_on:
       - c1-prom
-    #image: improbable/thanos:${THANOS_TAG}
-    image: thanos-exp/thanos:latest
+    image: improbable/thanos:${THANOS_TAG}
     volumes:
       - ./config/c1-prom:/config
       - ./template:/template
@@ -93,8 +94,7 @@ services:
   c1-query:
     depends_on:
       - c1-prom
-    #image: improbable/thanos:${THANOS_TAG}
-    image: thanos-exp/thanos:latest
+    image: improbable/thanos:${THANOS_TAG}
     networks:
       - c1
       - meta
@@ -115,8 +115,7 @@ services:
   c1-store:
     depends_on:
       - c1-prom
-    #image: improbable/thanos:${THANOS_TAG}
-    image: thanos-exp/thanos:latest
+    image: improbable/thanos:${THANOS_TAG}
     volumes:
       - ./creds:/creds
       - c1-store:/thanos_store
@@ -132,6 +131,20 @@ services:
       - --objstore.config-file=/creds/c1-s3.yaml
     ports:
       - 19014:10902
+  c1-grafana:
+    image: grafana/grafana:5.3.4
+    ports:
+      - 19015:3000
+    volumes:
+      - ./grafana/c1/provisioning:/provisioning
+      - c1-grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=pass
+      - GF_PATHS_PROVISIONING=/provisioning
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - c1
 
   c2-s3:
     image: minio/minio:latest
@@ -150,8 +163,7 @@ services:
   c2-prom:
     depends_on:
       - c2-s3
-    #image: prom/prometheus:v2.4.3
-    image: thanos-exp/prometheus:latest
+    image: prom/prometheus:v2.5.0
     volumes:
       - ./config/c2-prom:/config
       - c2-prom:/prometheus
@@ -175,8 +187,7 @@ services:
   c2-sidecar:
     depends_on:
       - c2-prom
-    #image: improbable/thanos:${THANOS_TAG}
-    image: thanos-exp/thanos:latest
+    image: improbable/thanos:${THANOS_TAG}
     volumes:
       - ./config/c2-prom:/config
       - ./template:/template
@@ -207,8 +218,7 @@ services:
   c2-query:
     depends_on:
       - c2-prom
-    #image: improbable/thanos:${THANOS_TAG}
-    image: thanos-exp/thanos:latest
+    image: improbable/thanos:${THANOS_TAG}
     networks:
       - c2
       - meta
@@ -229,8 +239,7 @@ services:
   c2-store:
     depends_on:
       - c2-prom
-    #image: improbable/thanos:${THANOS_TAG}
-    image: thanos-exp/thanos:latest
+    image: improbable/thanos:${THANOS_TAG}
     volumes:
       - ./creds:/creds
       - c2-store:/thanos_store
@@ -246,6 +255,20 @@ services:
       - --objstore.config-file=/creds/c2-s3.yaml
     ports:
       - 19024:10902
+  c2-grafana:
+    image: grafana/grafana:5.3.4
+    ports:
+      - 19025:3000
+    volumes:
+      - ./grafana/c2/provisioning:/provisioning
+      - c2-grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=pass
+      - GF_PATHS_PROVISIONING=/provisioning
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - c2
 
   c3-s3:
     image: minio/minio:latest
@@ -264,8 +287,7 @@ services:
   c3-prom:
     depends_on:
       - c3-s3
-    #image: prom/prometheus:v2.4.3
-    image: thanos-exp/prometheus:latest
+    image: prom/prometheus:v2.5.0
     volumes:
       - ./config/c3-prom:/config
       - c3-prom:/prometheus
@@ -289,8 +311,7 @@ services:
   c3-sidecar:
     depends_on:
       - c3-prom
-    #image: improbable/thanos:${THANOS_TAG}
-    image: thanos-exp/thanos:latest
+    image: improbable/thanos:${THANOS_TAG}
     volumes:
       - ./config/c3-prom:/config
       - ./template:/template
@@ -321,8 +342,7 @@ services:
   c3-query:
     depends_on:
       - c3-prom
-    #image: improbable/thanos:${THANOS_TAG}
-    image: thanos-exp/thanos:latest
+    image: improbable/thanos:${THANOS_TAG}
     networks:
       - c3
       - meta
@@ -343,8 +363,7 @@ services:
   c3-store:
     depends_on:
       - c3-prom
-    #image: improbable/thanos:${THANOS_TAG}
-    image: thanos-exp/thanos:latest
+    image: improbable/thanos:${THANOS_TAG}
     volumes:
       - ./creds:/creds
       - c3-store:/thanos_store
@@ -360,14 +379,27 @@ services:
       - --objstore.config-file=/creds/c3-s3.yaml
     ports:
       - 19034:10902
+  c3-grafana:
+    image: grafana/grafana:5.3.4
+    ports:
+      - 19035:3000
+    volumes:
+      - ./grafana/c3/provisioning:/provisioning
+      - c3-grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=pass
+      - GF_PATHS_PROVISIONING=/provisioning
+      - GF_USERS_ALLOW_SIGN_UP=false
+    networks:
+      - c3
 
   meta-query:
     depends_on:
       - c1-query
       - c2-query
       - c3-query
-    #image: improbable/thanos:${THANOS_TAG}
-    image: thanos-exp/thanos:latest
+    image: improbable/thanos:${THANOS_TAG}
     networks:
       - meta
     command:
@@ -386,12 +418,12 @@ services:
     ports:
       - 19043:10902
 
-  grafana:
+  meta-grafana:
     image: grafana/grafana:5.3.4
     ports:
-      - 13000:3000
+      - 19045:3000
     volumes:
-      - ./grafana/provisioning:/provisioning
+      - ./grafana/meta/provisioning:/provisioning
       - meta-grafana:/var/lib/grafana
     environment:
       - GF_SECURITY_ADMIN_USER=admin

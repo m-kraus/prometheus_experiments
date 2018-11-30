@@ -22,7 +22,6 @@ You can also change ```creds/c[1|2|3]-s3.yaml``` to match your Amazon S3 configu
 ## Starting the experiment
 
 ```
-make
 docker-compose up
 ```
 
@@ -33,6 +32,8 @@ Access minio store in your browser via <http://127.0.0.1:19010/minio/> <http://1
 The independent Prometheus instances are accessible via <http://127.0.0.1:19011> <http://127.0.0.1:19021> <http://127.0.0.1:19031>.
 
 The Thanos-query instances are accessible via <http://127.0.0.1:19013> <http://127.0.0.1:19023> <http://127.0.0.1:19033> and the meta-instance via <http://127.0.0.1:19043>.
+
+The Grafana instances are accessible via <http://127.0.0.1:19015> <http://127.0.0.1:19025> <http://127.0.0.1:19035> and the meta-instance via <http://127.0.0.1:19045> using the credentials ```admin:pass```.
 
 ## Stopping the experiment
 
