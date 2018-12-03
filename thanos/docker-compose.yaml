@@ -81,6 +81,8 @@ services:
       - sidecar
       - --debug.name=c1-sidecar
       - --log.level=debug
+      - --cluster.disable=true
+      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c1-prom:9090
@@ -106,6 +108,7 @@ services:
       - --query.auto-downsampling
       # Test this setting
       - --query.replica-label=replica
+      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --store=c1-sidecar:10901
@@ -125,6 +128,7 @@ services:
       - store
       - --debug.name=c1-store
       - --log.level=debug
+      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --data-dir=/thanos_store
@@ -205,6 +209,7 @@ services:
       - sidecar
       - --debug.name=c2-sidecar
       - --log.level=debug
+      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c2-prom:9090
@@ -230,6 +235,7 @@ services:
       - --query.auto-downsampling
       # Test this setting
       - --query.replica-label=replica
+      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --store=c2-sidecar:10901
@@ -249,6 +255,7 @@ services:
       - store
       - --debug.name=c2-store
       - --log.level=debug
+      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --data-dir=/thanos_store
@@ -329,6 +336,7 @@ services:
       - sidecar
       - --debug.name=c3-sidecar
       - --log.level=debug
+      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c3-prom:9090
@@ -354,6 +362,7 @@ services:
       - --query.auto-downsampling
       # Test this setting
       - --query.replica-label=replica
+      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --store=c3-sidecar:10901
@@ -373,6 +382,7 @@ services:
       - store
       - --debug.name=c3-store
       - --log.level=debug
+      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --data-dir=/thanos_store
@@ -410,6 +420,7 @@ services:
       - --query.auto-downsampling
       # Test this setting
       - --query.replica-label=replica
+      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --store=c1-query:10901
