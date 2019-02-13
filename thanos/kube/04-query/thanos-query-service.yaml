@@ -1,0 +1,37 @@
+kind: Service
+apiVersion: v1
+metadata: 
+  name: thanos-query
+  namespace: monitoring
+  labels: 
+    app: thanos-query
+spec: 
+  #TODO
+  #type: ClusterIP
+  type: NodePort
+  ports: 
+    - name: query-http
+      port: 10902
+      protocol: TCP
+      targetPort: http-query
+  selector: 
+    app: thanos-query
+---
+  # HeadlessService
+kind: Service
+apiVersion: v1
+metadata:
+  name: thanos-querys
+  namespace: monitoring
+  labels: 
+    app: thanos-query
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: query-grpc
+    port: 10901
+    protocol: TCP
+    targetPort: grpc-query
+  selector:
+    app: thanos-query

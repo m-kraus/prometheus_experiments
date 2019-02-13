@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thanos-query
+  namespace: monitoring
+  labels:
+    app: thanos-query
+spec:
+  selector:
+    matchLabels:
+      app: thanos-query
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: thanos-query
+    spec:
+      containers:
+        - name: thanos-query
+          image: improbable/thanos:v0.3.0
+          imagePullPolicy: "IfNotPresent"
+          args:
+            - "query"
+            - "--cluster.disable"
+            - "--query.auto-downsampling"
+            - "--query.partial-response"
+            - "--query.replica-label=replica"
+            - "--grpc-address=0.0.0.0:10901"
+            - "--http-address=0.0.0.0:10902"
+            - "--log.level=debug"
+            - "--store=dns+thanos-sidecars.svc.cluster.local:10901"
+            #TODO dns-sd
+          ports:
+            - name: http-query
+              containerPort: 10902
+            - name: grpc-query
+              containerPort: 10901
+          #TODO readinessProbe:
+          #TODO livenessProbe:

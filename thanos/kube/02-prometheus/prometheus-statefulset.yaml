@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prometheus 
+  namespace: monitoring
+  labels:
+    app: prometheus
+spec:
+  serviceName: "prometheus"
+  replicas: 1
+  podManagementPolicy: "Parallel"
+  updateStrategy:
+    type: "RollingUpdate"
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "10902"
+    spec:
+      priorityClassName: system-cluster-critical
+      serviceAccountName: prometheus
+      initContainers:
+      - name: "init-chown-data"
+        image: "busybox:latest"
+        imagePullPolicy: "IfNotPresent"
+        command: ["chown", "-R", "65534:65534", "/data"]
+        volumeMounts:
+        - name: data
+          mountPath: /data
+          subPath: ""
+      containers:
+        - name: thanos-sidecar
+          image: improbable/thanos:v0.3.0
+          imagePullPolicy: "IfNotPresent"
+          args:
+            - "sidecar"
+            - "--cluster.disable"
+            - "--tsdb.path=/data"
+            - "--prometheus.url=http://127.0.0.1:9090"
+            - "--grpc-address=0.0.0.0:10901"
+            - "--http-address=0.0.0.0:10902"
+            - "--reloader.config-file=/etc/prometheus/prometheus.yml.tmpl"
+            - "--reloader.config-envsubst-file=/etc/prometheus-shared/prometheus.yml"
+            - "--log.level=debug"
+          #TODO S3
+          #  - "--objstore.config-file=/creds/c3-s3.yaml"
+          ports:
+            - name: http-sidecar
+              containerPort: 10902
+            - name: grpc-sidecar
+              containerPort: 10901
+          volumeMounts:
+            - name: data
+              mountPath: /data
+              subPath: ""
+            - name: config-shared
+              mountPath: /etc/prometheus-shared
+            - name: config
+              mountPath: /etc/prometheus
+        - name: prometheus
+          image: "prom/prometheus:v2.7.1"
+          imagePullPolicy: "IfNotPresent"
+          args:
+            - "--web.listen-address=0.0.0.0:9090"
+            - "--config.file=/etc/prometheus-shared/prometheus.yml"
+            - "--storage.tsdb.path=/data"
+            - "--storage.tsdb.retention=24h"
+            - "--storage.tsdb.min-block-duration=2h"
+            - "--storage.tsdb.max-block-duration=2h"
+            - "--web.enable-lifecycle"
+            - "--log.level=warn"
+          ports:
+            - name: http-prometheus
+              containerPort: 9090
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: 9090
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: 9090
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          #TODO scaling
+          # based on 10 running nodes with 30 pods each
+          resources:
+            limits:
+              cpu: 200m
+              memory: 1000Mi
+            requests:
+              cpu: 200m
+              memory: 1000Mi
+          volumeMounts:
+            - name: config-shared
+              mountPath: /etc/prometheus-shared
+            - name: data
+              mountPath: /data
+              subPath: ""
+      terminationGracePeriodSeconds: 300
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-config
+        - name: config-shared
+          emptyDir: {}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      storageClassName: standard
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: "16Gi"

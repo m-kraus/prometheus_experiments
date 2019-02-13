@@ -1,0 +1,37 @@
+kind: Service
+apiVersion: v1
+metadata: 
+  name: prometheus
+  namespace: monitoring
+  labels: 
+    app: prometheus
+spec: 
+  #TODO
+  #type: ClusterIP
+  type: NodePort
+  ports: 
+    - name: prometheus-http 
+      port: 9090
+      protocol: TCP
+      targetPort: http-prometheus
+  selector: 
+    app: prometheus
+---
+  # HeadlessService
+kind: Service
+apiVersion: v1
+metadata:
+  name: thanos-sidecars
+  namespace: monitoring
+  labels: 
+    app: prometheus
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: sidecar-grpc
+    port: 10901
+    protocol: TCP
+    targetPort: grpc-sidecar
+  selector:
+    k8s-app: prometheus
