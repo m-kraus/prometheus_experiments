@@ -39,7 +39,7 @@ services:
   c1-prom:
     depends_on:
       - c1-s3
-    image: prom/prometheus:v2.5.0
+    image: prom/prometheus:v2.7.1
     volumes:
       - ./config/c1-prom:/config
       - c1-prom:/prometheus
@@ -79,10 +79,9 @@ services:
     #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
     command:
       - sidecar
+      - --cluster.disable
       - --debug.name=c1-sidecar
       - --log.level=debug
-      - --cluster.disable=true
-      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c1-prom:9090
@@ -102,13 +101,14 @@ services:
       - meta
     command:
       - query
+      - --cluster.disable
       - --debug.name=c1-query
       - --log.level=debug
       # Test this setting
       - --query.auto-downsampling
+      - --query.partial-response
       # Test this setting
       - --query.replica-label=replica
-      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --store=c1-sidecar:10901
@@ -126,9 +126,9 @@ services:
       - c1
     command:
       - store
+      - --cluster.disable
       - --debug.name=c1-store
       - --log.level=debug
-      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --data-dir=/thanos_store
@@ -136,7 +136,7 @@ services:
     ports:
       - 19014:10902
   c1-grafana:
-    image: grafana/grafana:5.3.4
+    image: grafana/grafana:5.4.3
     ports:
       - 19015:3000
     volumes:
@@ -167,7 +167,7 @@ services:
   c2-prom:
     depends_on:
       - c2-s3
-    image: prom/prometheus:v2.5.0
+    image: prom/prometheus:v2.7.1
     volumes:
       - ./config/c2-prom:/config
       - c2-prom:/prometheus
@@ -207,9 +207,9 @@ services:
     #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
     command:
       - sidecar
+      - --cluster.disable
       - --debug.name=c2-sidecar
       - --log.level=debug
-      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c2-prom:9090
@@ -229,13 +229,14 @@ services:
       - meta
     command:
       - query
+      - --cluster.disable
       - --debug.name=c2-query
       - --log.level=debug
       # Test this setting
       - --query.auto-downsampling
+      - --query.partial-response
       # Test this setting
       - --query.replica-label=replica
-      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --store=c2-sidecar:10901
@@ -253,9 +254,9 @@ services:
       - c2
     command:
       - store
+      - --cluster.disable
       - --debug.name=c2-store
       - --log.level=debug
-      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --data-dir=/thanos_store
@@ -263,7 +264,7 @@ services:
     ports:
       - 19024:10902
   c2-grafana:
-    image: grafana/grafana:5.3.4
+    image: grafana/grafana:5.4.3
     ports:
       - 19025:3000
     volumes:
@@ -294,7 +295,7 @@ services:
   c3-prom:
     depends_on:
       - c3-s3
-    image: prom/prometheus:v2.5.0
+    image: prom/prometheus:v2.7.1
     volumes:
       - ./config/c3-prom:/config
       - c3-prom:/prometheus
@@ -334,9 +335,9 @@ services:
     #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
     command:
       - sidecar
+      - --cluster.disable
       - --debug.name=c3-sidecar
       - --log.level=debug
-      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c3-prom:9090
@@ -356,13 +357,14 @@ services:
       - meta
     command:
       - query
+      - --cluster.disable
       - --debug.name=c3-query
       - --log.level=debug
       # Test this setting
       - --query.auto-downsampling
+      - --query.partial-response
       # Test this setting
       - --query.replica-label=replica
-      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --store=c3-sidecar:10901
@@ -380,9 +382,9 @@ services:
       - c3
     command:
       - store
+      - --cluster.disable
       - --debug.name=c3-store
       - --log.level=debug
-      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --data-dir=/thanos_store
@@ -390,7 +392,7 @@ services:
     ports:
       - 19034:10902
   c3-grafana:
-    image: grafana/grafana:5.3.4
+    image: grafana/grafana:5.4.3
     ports:
       - 19035:3000
     volumes:
@@ -414,13 +416,14 @@ services:
       - meta
     command:
       - query
+      - --cluster.disable
       - --debug.name=meta-query
       - --log.level=debug
       # Test this setting
       - --query.auto-downsampling
+      - --query.partial-response
       # Test this setting
       - --query.replica-label=replica
-      - --cluster.disable=true
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --store=c1-query:10901
@@ -430,7 +433,7 @@ services:
       - 19043:10902
 
   meta-grafana:
-    image: grafana/grafana:5.3.4
+    image: grafana/grafana:5.4.3
     ports:
       - 19045:3000
     volumes:
