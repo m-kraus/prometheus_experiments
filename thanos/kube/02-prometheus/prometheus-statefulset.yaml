@@ -7,7 +7,7 @@ metadata:
     app: prometheus
 spec:
   serviceName: "prometheus"
-  replicas: 1
+  replicas: 2
   podManagementPolicy: "Parallel"
   updateStrategy:
     type: "RollingUpdate"
@@ -70,7 +70,7 @@ spec:
             - "--web.listen-address=0.0.0.0:9090"
             - "--config.file=/etc/prometheus-shared/prometheus.yml"
             - "--storage.tsdb.path=/data"
-            - "--storage.tsdb.retention=24h"
+            - "--storage.tsdb.retention.time=24h"
             - "--storage.tsdb.min-block-duration=2h"
             - "--storage.tsdb.max-block-duration=2h"
             - "--web.enable-lifecycle"

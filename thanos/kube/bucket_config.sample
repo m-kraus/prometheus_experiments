@@ -1,9 +1,9 @@
 type: S3
 config:
-  access_key: ""
-  secret_key: ""
-  bucket: ""
-  endpoint: ""
+  access_key: "<MY_ACCESS_KEY>"
+  secret_key: "<MY_SECRET_ACCESS_KEY>"
+  bucket: "<MY_BUCKET>"
+  endpoint: "<MY_ENDPOINT>"
   insecure: false
   signature_version2: false
   encrypt_sse: false

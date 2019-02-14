@@ -50,7 +50,7 @@ services:
       - --config.file=/config/prometheus.yml
       - --storage.tsdb.path=/prometheus
       # recommended > 3x block-duration
-      - --storage.tsdb.retention=6h
+      - --storage.tsdb.retention.time=6h
       # recomended 2h
       - --storage.tsdb.min-block-duration=2h
       # recomended 2h
