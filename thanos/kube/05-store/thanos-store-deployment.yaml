@@ -1,19 +1,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: thanos-query
+  name: thanos-store
   namespace: monitoring
   labels:
-    app: thanos-query
+    app: thanos-store
 spec:
   selector:
     matchLabels:
-      app: thanos-query
+      app: thanos-store
   replicas: 1
   template:
     metadata:
       labels:
-        app: thanos-query
+        app: thanos-store
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "10902"
@@ -23,15 +23,12 @@ spec:
           image: improbable/thanos:v0.3.0
           imagePullPolicy: "IfNotPresent"
           args:
-            - "query"
+            - "store"
             - "--cluster.disable"
-            - "--query.auto-downsampling"
-            - "--query.partial-response"
-            - "--query.replica-label=replica"
             - "--grpc-address=0.0.0.0:10901"
             - "--http-address=0.0.0.0:10902"
-            - "--store=dns+thanos-sidecar-grpc.monitoring.svc.cluster.local:10901"
-            - "--store=dns+thanos-store-grpc.monitoring.svc.cluster.local:10901"
+            - "--data-dir=/store"
+            - "--objstore.config-file=/creds/bucket_config"
             - "--log.level=debug"
           ports:
             - name: http
@@ -40,3 +37,15 @@ spec:
               containerPort: 10901
           #TODO readinessProbe:
           #TODO livenessProbe:
+          volumeMounts:
+          - name: data
+            mountPath: /store
+          - name: creds
+            mountPath: /creds
+            readOnly: true
+      volumes:
+      - name: data
+        emptyDir: {}
+      - name: creds
+        secret:
+          secretName: s3-creds

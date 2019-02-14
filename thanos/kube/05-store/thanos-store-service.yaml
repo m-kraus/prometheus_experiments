@@ -1,37 +1,36 @@
 kind: Service
 apiVersion: v1
 metadata: 
-  name: thanos-query
+  name: thanos-store
   namespace: monitoring
   labels: 
-    app: thanos-query
+    app: thanos-store
 spec: 
-  #TODO
-  #type: ClusterIP
+  #TODO type: ClusterIP
   type: NodePort
   ports: 
-    - name: query-http
+    - name: store-http
       port: 10902
       protocol: TCP
       targetPort: 10902
   selector: 
-    app: thanos-query
+    app: thanos-store
 ---
 # HeadlessService
 kind: Service
 apiVersion: v1
 metadata:
-  name: thanos-query-grpc
+  name: thanos-store-grpc
   namespace: monitoring
   labels: 
-    app: thanos-query
+    app: thanos-stores
 spec:
   type: ClusterIP
   clusterIP: None
   ports:
-  - name: query-grpc
+  - name: store-grpc
     port: 10901
     protocol: TCP
     targetPort: 10901
   selector:
-    app: thanos-query
+    app: thanos-store

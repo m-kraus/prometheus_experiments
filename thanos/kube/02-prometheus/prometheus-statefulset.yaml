@@ -22,7 +22,6 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "10902"
     spec:
-      priorityClassName: system-cluster-critical
       serviceAccountName: prometheus
       initContainers:
       - name: "init-chown-data"
@@ -30,7 +29,7 @@ spec:
         imagePullPolicy: "IfNotPresent"
         command: ["chown", "-R", "65534:65534", "/data"]
         volumeMounts:
-        - name: data
+        - name: prometheus-data
           mountPath: /data
           subPath: ""
       containers:
@@ -46,22 +45,24 @@ spec:
             - "--http-address=0.0.0.0:10902"
             - "--reloader.config-file=/etc/prometheus/prometheus.yml.tmpl"
             - "--reloader.config-envsubst-file=/etc/prometheus-shared/prometheus.yml"
+            - "--objstore.config-file=/creds/bucket_config"
             - "--log.level=debug"
-          #TODO S3
-          #  - "--objstore.config-file=/creds/c3-s3.yaml"
           ports:
             - name: http-sidecar
               containerPort: 10902
             - name: grpc-sidecar
               containerPort: 10901
           volumeMounts:
-            - name: data
+            - name: prometheus-data
               mountPath: /data
               subPath: ""
             - name: config-shared
               mountPath: /etc/prometheus-shared
             - name: config
               mountPath: /etc/prometheus
+            - name: creds
+              mountPath: /creds
+              readOnly: true
         - name: prometheus
           image: "prom/prometheus:v2.7.1"
           imagePullPolicy: "IfNotPresent"
@@ -101,7 +102,7 @@ spec:
           volumeMounts:
             - name: config-shared
               mountPath: /etc/prometheus-shared
-            - name: data
+            - name: prometheus-data
               mountPath: /data
               subPath: ""
       terminationGracePeriodSeconds: 300
@@ -111,13 +112,16 @@ spec:
             name: prometheus-config
         - name: config-shared
           emptyDir: {}
+        - name: creds
+          secret:
+            secretName: s3-creds
   volumeClaimTemplates:
   - metadata:
-      name: data
+      name: prometheus-data
     spec:
       storageClassName: standard
       accessModes:
         - ReadWriteOnce
       resources:
         requests:
-          storage: "16Gi"
+          storage: "2Gi"

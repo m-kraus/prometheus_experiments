@@ -171,7 +171,7 @@ data:
         - source_labels: [__meta_kubernetes_namespace]
           regex: monitoring 
           action: keep
-        - source_labels: [__meta_kubernetes_pod_label_k8s_app]
+        - source_labels: [__meta_kubernetes_pod_label_app]
           regex: alertmanager
           action: keep
         - source_labels: [__meta_kubernetes_pod_container_port_number]

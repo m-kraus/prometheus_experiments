@@ -17,11 +17,10 @@ spec:
   selector: 
     app: prometheus
 ---
-  # HeadlessService
 kind: Service
 apiVersion: v1
 metadata:
-  name: thanos-sidecars
+  name: thanos-sidecar-grpc
   namespace: monitoring
   labels: 
     app: prometheus
@@ -32,6 +31,6 @@ spec:
   - name: sidecar-grpc
     port: 10901
     protocol: TCP
-    targetPort: grpc-sidecar
+    targetPort: 10901
   selector:
-    k8s-app: prometheus
+    app: prometheus
