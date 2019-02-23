@@ -1,0 +1,4 @@
+*
+!.gitignore
+!bucket_config
+!*.sample

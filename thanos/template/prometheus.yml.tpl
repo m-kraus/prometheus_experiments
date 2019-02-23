@@ -1,7 +1,8 @@
 global:
   external_labels:
+    company: acme
     cluster: "$(CLUSTER)"
-    prometheus: "$(PROM_INSTANCE)"
+    replica: "$(REPLICA)"
 scrape_configs:
 - job_name: prometheus
   scrape_interval: 5s
@@ -12,14 +13,14 @@ scrape_configs:
   scrape_interval: 5s
   static_configs:
   - targets:
-    - "$(SIDECAR_INSTANCE):10902"
+    - "$(CLUSTER)-sidecar:10902"
 - job_name: thanos-store
   scrape_interval: 5s
   static_configs:
   - targets:
-    - "store:10902"
+    - "$(CLUSTER)-store:10902"
 - job_name: thanos-query
   scrape_interval: 5s
   static_configs:
   - targets:
-    - "$(QUERY_INSTANCE):10902"
+    - "$(CLUSTER)-query:10902"

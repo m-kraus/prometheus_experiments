@@ -1,47 +1,37 @@
 version: "3.5"
 
 volumes:
-  c1-s3: {}
-  c2-s3: {}
-  c3-s3: {}
   c1-prom: {}
+  c1-shared-config: {}
   c2-prom: {}
+  c2-shared-config: {}
   c3-prom: {}
+  c3-shared-config: {}
   c1-store: {}
   c2-store: {}
   c3-store: {}
   c1-grafana: {}
   c2-grafana: {}
   c3-grafana: {}
+  store-s3: {}
   meta-grafana: {}
 
 networks:
   c1:
   c2:
   c3:
+  store:
   meta:
 
 services:
-  c1-s3:
-    image: minio/minio:latest
-    volumes:
-      - c1-s3:/export
-    networks:
-      - c1
-    environment:
-      - "MINIO_ACCESS_KEY=THANOS"
-      - "MINIO_SECRET_KEY=ITSTHANOSTIME"
-    entrypoint: sh
-    # This is a workaropund for creating the bucket "thanosbucket"
-    command: -c 'mkdir -p /export/thanosbucket && /usr/bin/minio server /export'
-    ports:
-      - 19010:9000
   c1-prom:
     depends_on:
-      - c1-s3
+      - c1-sidecar
     image: prom/prometheus:v2.7.1
+    # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
+    user: root
     volumes:
-      - ./config/c1-prom:/config
+      - c1-shared-config:/config
       - c1-prom:/prometheus
     networks:
       - c1
@@ -61,53 +51,44 @@ services:
     ports:
       - 19011:9090
   c1-sidecar:
-    depends_on:
-      - c1-prom
     image: improbable/thanos:v0.3.1
+    # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
+    user: root
     volumes:
-      - ./config/c1-prom:/config
       - ./template:/template
       - ./creds:/creds
       - c1-prom:/prometheus
+      - c1-shared-config:/config
     networks:
       - c1
+      - store
     environment:
       - CLUSTER=c1
-      - PROM_INSTANCE=c1-prom
-      - SIDECAR_INSTANCE=c1-sidecar
-      - QUERY_INSTANCE=c1-query
-    #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
+      - REPLICA=c1-prom-01
+      - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
     command:
       - sidecar
       - --cluster.disable
-      - --debug.name=c1-sidecar
-      - --log.level=debug
+      - --log.level=warn
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c1-prom:9090
       - --tsdb.path=/prometheus
-      - --objstore.config-file=/creds/c1-s3.yaml
-      #- --reloader.config-file=/template/prometheus.yml.tpl
-      #- --reloader.config-envsubst-file=/config/prometheus.yml
-      #- --reloader.rule-dir=TODO
+      - --objstore.config-file=/creds/bucket_config
+      - --reloader.config-file=/template/prometheus.yml.tpl
+      - --reloader.config-envsubst-file=/config/prometheus.yml
     ports:
       - 19012:10902
   c1-query:
-    depends_on:
-      - c1-prom
     image: improbable/thanos:v0.3.1
     networks:
       - c1
-      - meta
     command:
       - query
       - --cluster.disable
-      - --debug.name=c1-query
-      - --log.level=debug
-      # Test this setting
+      - --log.level=warn
       - --query.auto-downsampling
       - --query.partial-response
-      # Test this setting
       - --query.replica-label=replica
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
@@ -116,23 +97,24 @@ services:
     ports:
       - 19013:10902
   c1-store:
+    # S3 storage must be accessible before starting store
     depends_on:
-      - c1-prom
+      - store-s3
     image: improbable/thanos:v0.3.1
     volumes:
       - ./creds:/creds
       - c1-store:/thanos_store
     networks:
       - c1
+      - store
     command:
       - store
       - --cluster.disable
-      - --debug.name=c1-store
       - --log.level=debug
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --data-dir=/thanos_store
-      - --objstore.config-file=/creds/c1-s3.yaml
+      - --objstore.config-file=/creds/bucket_config
     ports:
       - 19014:10902
   c1-grafana:
@@ -147,29 +129,18 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=pass
       - GF_PATHS_PROVISIONING=/provisioning
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_LOG_LEVEL=warn
     networks:
       - c1
 
-  c2-s3:
-    image: minio/minio:latest
-    volumes:
-      - c2-s3:/export
-    networks:
-      - c2
-    environment:
-      - "MINIO_ACCESS_KEY=THANOS"
-      - "MINIO_SECRET_KEY=ITSTHANOSTIME"
-    entrypoint: sh
-    # This is a workaropund for creating the bucket "thanosbucket"
-    command: -c 'mkdir -p /export/thanosbucket && /usr/bin/minio server /export'
-    ports:
-      - 19020:9000
   c2-prom:
     depends_on:
-      - c2-s3
+      - c2-sidecar
     image: prom/prometheus:v2.7.1
+    # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
+    user: root
     volumes:
-      - ./config/c2-prom:/config
+      - c2-shared-config:/config
       - c2-prom:/prometheus
     networks:
       - c2
@@ -178,7 +149,7 @@ services:
       - --config.file=/config/prometheus.yml
       - --storage.tsdb.path=/prometheus
       # recommended > 3x block-duration
-      - --storage.tsdb.retention=6h
+      - --storage.tsdb.retention.time=6h
       # recomended 2h
       - --storage.tsdb.min-block-duration=2h
       # recomended 2h
@@ -189,53 +160,44 @@ services:
     ports:
       - 19021:9090
   c2-sidecar:
-    depends_on:
-      - c2-prom
     image: improbable/thanos:v0.3.1
+    # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
+    user: root
     volumes:
-      - ./config/c2-prom:/config
       - ./template:/template
       - ./creds:/creds
       - c2-prom:/prometheus
+      - c2-shared-config:/config
     networks:
       - c2
+      - store
     environment:
       - CLUSTER=c2
-      - PROM_INSTANCE=c2-prom
-      - SIDECAR_INSTANCE=c2-sidecar
-      - QUERY_INSTANCE=c2-query
-    #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
+      - REPLICA=c2-prom-01
+      - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
     command:
       - sidecar
       - --cluster.disable
-      - --debug.name=c2-sidecar
-      - --log.level=debug
+      - --log.level=warn
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c2-prom:9090
       - --tsdb.path=/prometheus
-      - --objstore.config-file=/creds/c2-s3.yaml
-      #- --reloader.config-file=/template/prometheus.yml.tpl
-      #- --reloader.config-envsubst-file=/config/prometheus.yml
-      #- --reloader.rule-dir=TODO
+      - --objstore.config-file=/creds/bucket_config
+      - --reloader.config-file=/template/prometheus.yml.tpl
+      - --reloader.config-envsubst-file=/config/prometheus.yml
     ports:
       - 19022:10902
   c2-query:
-    depends_on:
-      - c2-prom
     image: improbable/thanos:v0.3.1
     networks:
       - c2
-      - meta
     command:
       - query
       - --cluster.disable
-      - --debug.name=c2-query
-      - --log.level=debug
-      # Test this setting
+      - --log.level=warn
       - --query.auto-downsampling
       - --query.partial-response
-      # Test this setting
       - --query.replica-label=replica
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
@@ -244,23 +206,24 @@ services:
     ports:
       - 19023:10902
   c2-store:
+    # S3 storage must be accessible before starting store
     depends_on:
-      - c2-prom
+      - store-s3
     image: improbable/thanos:v0.3.1
     volumes:
       - ./creds:/creds
       - c2-store:/thanos_store
     networks:
       - c2
+      - store
     command:
       - store
       - --cluster.disable
-      - --debug.name=c2-store
       - --log.level=debug
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --data-dir=/thanos_store
-      - --objstore.config-file=/creds/c2-s3.yaml
+      - --objstore.config-file=/creds/bucket_config
     ports:
       - 19024:10902
   c2-grafana:
@@ -275,29 +238,34 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=pass
       - GF_PATHS_PROVISIONING=/provisioning
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_LOG_LEVEL=warn
     networks:
       - c2
 
-  c3-s3:
+  store-s3:
     image: minio/minio:latest
     volumes:
-      - c3-s3:/export
+      - store-s3:/export
     networks:
-      - c3
+      - store
     environment:
       - "MINIO_ACCESS_KEY=THANOS"
       - "MINIO_SECRET_KEY=ITSTHANOSTIME"
     entrypoint: sh
+    #TODO check if this works for more than one prometheus
     # This is a workaropund for creating the bucket "thanosbucket"
     command: -c 'mkdir -p /export/thanosbucket && /usr/bin/minio server /export'
     ports:
-      - 19030:9000
+      - 19000:9000
+
   c3-prom:
     depends_on:
-      - c3-s3
+      - c3-sidecar
     image: prom/prometheus:v2.7.1
+    # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
+    user: root
     volumes:
-      - ./config/c3-prom:/config
+      - c3-shared-config:/config
       - c3-prom:/prometheus
     networks:
       - c3
@@ -306,7 +274,7 @@ services:
       - --config.file=/config/prometheus.yml
       - --storage.tsdb.path=/prometheus
       # recommended > 3x block-duration
-      - --storage.tsdb.retention=6h
+      - --storage.tsdb.retention.time=6h
       # recomended 2h
       - --storage.tsdb.min-block-duration=2h
       # recomended 2h
@@ -317,53 +285,44 @@ services:
     ports:
       - 19031:9090
   c3-sidecar:
-    depends_on:
-      - c3-prom
     image: improbable/thanos:v0.3.1
+    # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
+    user: root
     volumes:
-      - ./config/c3-prom:/config
       - ./template:/template
       - ./creds:/creds
       - c3-prom:/prometheus
+      - c3-shared-config:/config
     networks:
       - c3
+      - store
     environment:
       - CLUSTER=c3
-      - PROM_INSTANCE=c3-prom
-      - SIDECAR_INSTANCE=c3-sidecar
-      - QUERY_INSTANCE=c3-query
-    #  - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
+      - REPLICA=c3-prom-01
+      - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
     command:
       - sidecar
       - --cluster.disable
-      - --debug.name=c3-sidecar
-      - --log.level=debug
+      - --log.level=warn
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c3-prom:9090
       - --tsdb.path=/prometheus
-      - --objstore.config-file=/creds/c3-s3.yaml
-      #- --reloader.config-file=/template/prometheus.yml.tpl
-      #- --reloader.config-envsubst-file=/config/prometheus.yml
-      #- --reloader.rule-dir=TODO
+      - --objstore.config-file=/creds/bucket_config
+      - --reloader.config-file=/template/prometheus.yml.tpl
+      - --reloader.config-envsubst-file=/config/prometheus.yml
     ports:
       - 19032:10902
   c3-query:
-    depends_on:
-      - c3-prom
     image: improbable/thanos:v0.3.1
     networks:
       - c3
-      - meta
     command:
       - query
       - --cluster.disable
-      - --debug.name=c3-query
-      - --log.level=debug
-      # Test this setting
+      - --log.level=warn
       - --query.auto-downsampling
       - --query.partial-response
-      # Test this setting
       - --query.replica-label=replica
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
@@ -372,23 +331,24 @@ services:
     ports:
       - 19033:10902
   c3-store:
+    # S3 storage must be accessible before starting store
     depends_on:
-      - c3-prom
+      - store-s3
     image: improbable/thanos:v0.3.1
     volumes:
       - ./creds:/creds
       - c3-store:/thanos_store
     networks:
       - c3
+      - store
     command:
       - store
       - --cluster.disable
-      - --debug.name=c3-store
       - --log.level=debug
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --data-dir=/thanos_store
-      - --objstore.config-file=/creds/c3-s3.yaml
+      - --objstore.config-file=/creds/bucket_config
     ports:
       - 19034:10902
   c3-grafana:
@@ -403,17 +363,22 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=pass
       - GF_PATHS_PROVISIONING=/provisioning
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_LOG_LEVEL=warn
     networks:
       - c3
 
   meta-query:
-    depends_on:
-      - c1-query
-      - c2-query
-      - c3-query
+    #TODO
+    #depends_on:
+    #  - c1-query
+    #  - c2-query
+    #  - c3-query
     image: improbable/thanos:v0.3.1
     networks:
       - meta
+      - c1
+      - c2
+      - c3
     command:
       - query
       - --cluster.disable
@@ -444,5 +409,6 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=pass
       - GF_PATHS_PROVISIONING=/provisioning
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_LOG_LEVEL=warn
     networks:
       - meta

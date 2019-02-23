@@ -1,9 +1,0 @@
-type: S3
-config:
-    bucket: thanosbucket
-    endpoint: c1-s3:9000
-    access_key: THANOS
-    insecure: true
-    signature_version2: true
-    encrypt_sse: false
-    secret_key: ITSTHANOSTIME
