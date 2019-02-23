@@ -32,7 +32,7 @@ services:
       - "MINIO_ACCESS_KEY=THANOS"
       - "MINIO_SECRET_KEY=ITSTHANOSTIME"
     entrypoint: sh
-    # This is a workaropund for creating the bucket
+    # This is a workaropund for creating the bucket "thanosbucket"
     command: -c 'mkdir -p /export/thanosbucket && /usr/bin/minio server /export'
     ports:
       - 19010:9000
@@ -63,7 +63,7 @@ services:
   c1-sidecar:
     depends_on:
       - c1-prom
-    image: improbable/thanos:${THANOS_TAG}
+    image: improbable/thanos:v0.3.1
     volumes:
       - ./config/c1-prom:/config
       - ./template:/template
@@ -95,7 +95,7 @@ services:
   c1-query:
     depends_on:
       - c1-prom
-    image: improbable/thanos:${THANOS_TAG}
+    image: improbable/thanos:v0.3.1
     networks:
       - c1
       - meta
@@ -118,7 +118,7 @@ services:
   c1-store:
     depends_on:
       - c1-prom
-    image: improbable/thanos:${THANOS_TAG}
+    image: improbable/thanos:v0.3.1
     volumes:
       - ./creds:/creds
       - c1-store:/thanos_store
@@ -160,7 +160,7 @@ services:
       - "MINIO_ACCESS_KEY=THANOS"
       - "MINIO_SECRET_KEY=ITSTHANOSTIME"
     entrypoint: sh
-    # This is a workaropund for creating the bucket
+    # This is a workaropund for creating the bucket "thanosbucket"
     command: -c 'mkdir -p /export/thanosbucket && /usr/bin/minio server /export'
     ports:
       - 19020:9000
@@ -191,7 +191,7 @@ services:
   c2-sidecar:
     depends_on:
       - c2-prom
-    image: improbable/thanos:${THANOS_TAG}
+    image: improbable/thanos:v0.3.1
     volumes:
       - ./config/c2-prom:/config
       - ./template:/template
@@ -223,7 +223,7 @@ services:
   c2-query:
     depends_on:
       - c2-prom
-    image: improbable/thanos:${THANOS_TAG}
+    image: improbable/thanos:v0.3.1
     networks:
       - c2
       - meta
@@ -246,7 +246,7 @@ services:
   c2-store:
     depends_on:
       - c2-prom
-    image: improbable/thanos:${THANOS_TAG}
+    image: improbable/thanos:v0.3.1
     volumes:
       - ./creds:/creds
       - c2-store:/thanos_store
@@ -288,7 +288,7 @@ services:
       - "MINIO_ACCESS_KEY=THANOS"
       - "MINIO_SECRET_KEY=ITSTHANOSTIME"
     entrypoint: sh
-    # This is a workaropund for creating the bucket
+    # This is a workaropund for creating the bucket "thanosbucket"
     command: -c 'mkdir -p /export/thanosbucket && /usr/bin/minio server /export'
     ports:
       - 19030:9000
@@ -319,7 +319,7 @@ services:
   c3-sidecar:
     depends_on:
       - c3-prom
-    image: improbable/thanos:${THANOS_TAG}
+    image: improbable/thanos:v0.3.1
     volumes:
       - ./config/c3-prom:/config
       - ./template:/template
@@ -351,7 +351,7 @@ services:
   c3-query:
     depends_on:
       - c3-prom
-    image: improbable/thanos:${THANOS_TAG}
+    image: improbable/thanos:v0.3.1
     networks:
       - c3
       - meta
@@ -374,7 +374,7 @@ services:
   c3-store:
     depends_on:
       - c3-prom
-    image: improbable/thanos:${THANOS_TAG}
+    image: improbable/thanos:v0.3.1
     volumes:
       - ./creds:/creds
       - c3-store:/thanos_store
@@ -411,7 +411,7 @@ services:
       - c1-query
       - c2-query
       - c3-query
-    image: improbable/thanos:${THANOS_TAG}
+    image: improbable/thanos:v0.3.1
     networks:
       - meta
     command:
