@@ -5,17 +5,21 @@ Additionally a Thanos-store and a Thanos-query for each Prometheus instance is c
 
 Finally a "meta"-Thanos-query is configured to provide a "fleet-wide" view over all instances.
 
-For "long-term"-storage there are also minio instances, which are configured through ```creds/c[1|2|3].s3.yaml``` for the Thanos-sidecars and Thanos-stores, mimicking dediacted S3 storage.
+For "long-term"-storage there is also a minio instance, where the Thanos-sidecars and Thanos-stores write into.
 
 ## Storage options
 
-Storage in Google GCS is prepared. Uncomment the environment variable ```GOOGLE_APPLICATION_CREDENTIALS``` in the file ```docker-compose.yaml``` and configure ```creds/gcs-credentials.json.sample``` and ```creds/gcs.yaml.sample``` accordingly.
+For a quick start storage in minio is prepared and activated already, i.e. the symbolic link ```creds/bucket_config``` is currently pointing to ```creds/bucket_config.s3-minio```.
 
-You can also change ```creds/c[1|2|3]-s3.yaml``` to match your Amazon S3 configuration. See <https://github.com/improbable-eng/> for details.
+For storage in GCS or AWS-S3 please have a look at the provided samples of ```creds/bucket_config.gcs.sample``` and ```creds/bucket_config.s3-aws.sample```. Their options are described in depth at <https://github.com/improbable-eng/thanos/blob/master/docs/storage.md>
+
+To activate one of the storage options, create e.g. ```creds/bucket_config.s3-aws``` from ```creds/bucket_config.s3-aws.sample``` and change the symbolic link ```creds/bucket_config``` to point to the newly created file.
+
+For Google GCS you have also to provide your credentials in ```creds/gcs-credentials.json```. Please consult <https://github.com/improbable-eng/thanos/blob/master/docs/storage.md> for more info.
 
 ## Diagram
 
-![Architecture](Thanos_Architecture.png)
+![Architecture](Thanos_Architecture.svg)
 
 [Draw.io source](Thanos_Architecture.xml)
 
@@ -27,16 +31,26 @@ docker-compose up
 
 ## Accessing the components
 
-Access minio store in your browser via <http://127.0.0.1:19010/minio/> <http://127.0.0.1:19020/minio/> <http://127.0.0.1:19030/minio/>using the credentials ```THANOS:ITSTHANOSTIME```.
+You can click on the components in the architecture diagram above.
 
-The independent Prometheus instances are accessible via <http://127.0.0.1:19011> <http://127.0.0.1:19021> <http://127.0.0.1:19031>.
+For minio use the credentials ```THANOS:ITSTHANOSTIME```. For Grafana use the credentials ```admin:pass```:
 
-The Thanos-query instances are accessible via <http://127.0.0.1:19013> <http://127.0.0.1:19023> <http://127.0.0.1:19033> and the meta-instance via <http://127.0.0.1:19043>.
+### List of components
 
-The Grafana instances are accessible via <http://127.0.0.1:19015> <http://127.0.0.1:19025> <http://127.0.0.1:19035> and the meta-instance via <http://127.0.0.1:19045> using the credentials ```admin:pass```.
+Minio <http://127.0.0.1:19000/minio/>
+
+Prometheus <http://127.0.0.1:19011> <http://127.0.0.1:19021> <http://127.0.0.1:19031>
+
+Thanos-query <http://127.0.0.1:19013> <http://127.0.0.1:19023> <http://127.0.0.1:19033> and <http://127.0.0.1:19043>
+
+Grafana <http://127.0.0.1:19015> <http://127.0.0.1:19025> <http://127.0.0.1:19035> and <http://127.0.0.1:19045>
 
 ## Stopping the experiment
 
 ```
 docker-compose down -v
 ```
+
+## Kubernetes
+
+Example kubernetes manifests are available in the ```kube``` subdirectory.
