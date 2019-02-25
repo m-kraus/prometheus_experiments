@@ -19,7 +19,7 @@ For Google GCS you have also to provide your credentials in ```creds/gcs-credent
 
 ## Diagram
 
-![Architecture](Thanos_Architecture.svg)
+![Architecture](https://raw.githubusercontent.com/m-kraus/prometheus_experiments/master/thanos/Thanos_Architecture.svg?sanitize=true)
 
 [Draw.io source](Thanos_Architecture.xml)
 
