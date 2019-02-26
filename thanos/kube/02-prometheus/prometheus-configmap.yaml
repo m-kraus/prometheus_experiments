@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-config
-  namespace: monitoring 
+  namespace: monitoring
   labels:
     app: prometheus
 data:
@@ -11,7 +11,10 @@ data:
     global:
       external_labels:
         monitor: prometheus
-        replica: '$(HOSTNAME)'
+        replica: '$(POD_NAME)'
+
+    rule_files:
+    - /etc/prometheus/rules/*rules.yaml
 
     scrape_configs:
     - job_name: prometheus
@@ -161,6 +164,11 @@ data:
         target_label: kubernetes_pod_name
 
     alerting:
+      # We want our alerts to be deduplicated
+      # from different replicas.
+      alert_relabel_configs:
+      - regex: replica
+        action: labeldrop
       alertmanagers:
       - kubernetes_sd_configs:
           - role: pod

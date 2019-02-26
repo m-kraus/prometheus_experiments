@@ -13,6 +13,7 @@ kubectl create -f 01-node_exporter/node-exporter-service.yaml
 echo -n "Deploying prometheus with thanos sidecar..."
 kubectl create -f 02-prometheus/prometheus-rbac.yaml
 kubectl create -f 02-prometheus/prometheus-configmap.yaml
+kubectl create -f 02-prometheus/prometheus-rules-configmap.yaml
 kubectl create -f 02-prometheus/prometheus-statefulset.yaml
 kubectl create -f 02-prometheus/prometheus-service.yaml
 
