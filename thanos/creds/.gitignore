@@ -1,4 +1,4 @@
 *
 !.gitignore
-!bucket_config
+!bucket_config.c*
 !*.sample

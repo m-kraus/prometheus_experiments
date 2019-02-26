@@ -1,0 +1,13 @@
+type: S3
+config:
+    access_key: "THANOS"
+    secret_key: "ITSTHANOSTIME"
+    bucket: "bucket001"
+    endpoint: "store-s3:9000"
+    insecure: true
+    signature_version2: true
+    encrypt_sse:    
+    put_user_metadata: {}
+    http_config:
+        idle_conn_timeout: 0s
+        insecure_skip_verify: false

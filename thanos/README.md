@@ -9,11 +9,9 @@ For "long-term"-storage there is also a minio instance, where the Thanos-sidecar
 
 ## Storage options
 
-For a quick start storage in minio is prepared and activated already, i.e. the symbolic link ```creds/bucket_config``` is currently pointing to ```creds/bucket_config.s3-minio```.
+For a quick start storage in minio is prepared and activated already, this is done with ```creds/bucket_config.c[1|2|3]```
 
 For storage in GCS or AWS-S3 please have a look at the provided samples of ```creds/bucket_config.gcs.sample``` and ```creds/bucket_config.s3-aws.sample```. Their options are described in depth at <https://github.com/improbable-eng/thanos/blob/master/docs/storage.md>
-
-To activate one of the storage options, create e.g. ```creds/bucket_config.s3-aws``` from ```creds/bucket_config.s3-aws.sample``` and change the symbolic link ```creds/bucket_config``` to point to the newly created file.
 
 For Google GCS you have also to provide your credentials in ```creds/gcs-credentials.json```. Please consult <https://github.com/improbable-eng/thanos/blob/master/docs/storage.md> for more info.
 
