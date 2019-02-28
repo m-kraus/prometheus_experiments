@@ -77,7 +77,6 @@ services:
       - --objstore.config-file=/creds/bucket_config
       - --reloader.config-file=/template/prometheus.yml.tpl
       - --reloader.config-envsubst-file=/config/prometheus.yml
-      - --shipper.upload-compacted-once
     ports:
       - 19012:10902
   c1-query:
@@ -187,7 +186,6 @@ services:
       - --objstore.config-file=/creds/bucket_config
       - --reloader.config-file=/template/prometheus.yml.tpl
       - --reloader.config-envsubst-file=/config/prometheus.yml
-      - --shipper.upload-compacted-once
     ports:
       - 19022:10902
   c2-query:
@@ -297,7 +295,6 @@ services:
       - --objstore.config-file=/creds/bucket_config
       - --reloader.config-file=/template/prometheus.yml.tpl
       - --reloader.config-envsubst-file=/config/prometheus.yml
-      - --shipper.upload-compacted-once
     ports:
       - 19032:10902
   c3-query:
