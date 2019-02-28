@@ -51,7 +51,7 @@ services:
     ports:
       - 19011:9090
   c1-sidecar:
-    image: improbable/thanos:v0.3.1
+    image: improbable/thanos:v0.3.2-rc.0
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -74,13 +74,14 @@ services:
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c1-prom:9090
       - --tsdb.path=/prometheus
-      - --objstore.config-file=/creds/bucket_config.c1
+      - --objstore.config-file=/creds/bucket_config
       - --reloader.config-file=/template/prometheus.yml.tpl
       - --reloader.config-envsubst-file=/config/prometheus.yml
+      - --shipper.upload-compacted-once
     ports:
       - 19012:10902
   c1-query:
-    image: improbable/thanos:v0.3.1
+    image: improbable/thanos:v0.3.2-rc.0
     networks:
       - c1
     command:
@@ -100,7 +101,7 @@ services:
     # S3 storage must be accessible before starting store
     depends_on:
       - store-s3
-    image: improbable/thanos:v0.3.1
+    image: improbable/thanos:v0.3.2-rc.0
     volumes:
       - ./creds:/creds
       - c1-store:/thanos_store
@@ -114,7 +115,7 @@ services:
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --data-dir=/thanos_store
-      - --objstore.config-file=/creds/bucket_config.c1
+      - --objstore.config-file=/creds/bucket_config
     ports:
       - 19014:10902
   c1-grafana:
@@ -160,7 +161,7 @@ services:
     ports:
       - 19021:9090
   c2-sidecar:
-    image: improbable/thanos:v0.3.1
+    image: improbable/thanos:v0.3.2-rc.0
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -183,13 +184,14 @@ services:
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c2-prom:9090
       - --tsdb.path=/prometheus
-      - --objstore.config-file=/creds/bucket_config.c2
+      - --objstore.config-file=/creds/bucket_config
       - --reloader.config-file=/template/prometheus.yml.tpl
       - --reloader.config-envsubst-file=/config/prometheus.yml
+      - --shipper.upload-compacted-once
     ports:
       - 19022:10902
   c2-query:
-    image: improbable/thanos:v0.3.1
+    image: improbable/thanos:v0.3.2-rc.0
     networks:
       - c2
     command:
@@ -209,7 +211,7 @@ services:
     # S3 storage must be accessible before starting store
     depends_on:
       - store-s3
-    image: improbable/thanos:v0.3.1
+    image: improbable/thanos:v0.3.2-rc.0
     volumes:
       - ./creds:/creds
       - c2-store:/thanos_store
@@ -223,7 +225,7 @@ services:
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --data-dir=/thanos_store
-      - --objstore.config-file=/creds/bucket_config.c2
+      - --objstore.config-file=/creds/bucket_config
     ports:
       - 19024:10902
   c2-grafana:
@@ -269,7 +271,7 @@ services:
     ports:
       - 19031:9090
   c3-sidecar:
-    image: improbable/thanos:v0.3.1
+    image: improbable/thanos:v0.3.2-rc.0
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -292,13 +294,14 @@ services:
       - --http-address=0.0.0.0:10902
       - --prometheus.url=http://c3-prom:9090
       - --tsdb.path=/prometheus
-      - --objstore.config-file=/creds/bucket_config.c3
+      - --objstore.config-file=/creds/bucket_config
       - --reloader.config-file=/template/prometheus.yml.tpl
       - --reloader.config-envsubst-file=/config/prometheus.yml
+      - --shipper.upload-compacted-once
     ports:
       - 19032:10902
   c3-query:
-    image: improbable/thanos:v0.3.1
+    image: improbable/thanos:v0.3.2-rc.0
     networks:
       - c3
     command:
@@ -318,7 +321,7 @@ services:
     # S3 storage must be accessible before starting store
     depends_on:
       - store-s3
-    image: improbable/thanos:v0.3.1
+    image: improbable/thanos:v0.3.2-rc.0
     volumes:
       - ./creds:/creds
       - c3-store:/thanos_store
@@ -332,7 +335,7 @@ services:
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --data-dir=/thanos_store
-      - --objstore.config-file=/creds/bucket_config.c3
+      - --objstore.config-file=/creds/bucket_config
     ports:
       - 19034:10902
   c3-grafana:
@@ -352,7 +355,7 @@ services:
       - c3
 
   meta-query:
-    image: improbable/thanos:v0.3.1
+    image: improbable/thanos:v0.3.2-rc.0
     networks:
       - meta
       - c1
