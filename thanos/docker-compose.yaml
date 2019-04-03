@@ -27,7 +27,7 @@ services:
   c1-prom:
     depends_on:
       - c1-sidecar
-    image: prom/prometheus:v2.7.2
+    image: prom/prometheus:v2.8.1
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -118,7 +118,7 @@ services:
     ports:
       - 19014:10902
   c1-grafana:
-    image: grafana/grafana:6.0.1
+    image: grafana/grafana:6.0.2
     ports:
       - 19015:3000
     volumes:
@@ -136,7 +136,7 @@ services:
   c2-prom:
     depends_on:
       - c2-sidecar
-    image: prom/prometheus:v2.7.2
+    image: prom/prometheus:v2.8.1
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -227,7 +227,7 @@ services:
     ports:
       - 19024:10902
   c2-grafana:
-    image: grafana/grafana:6.0.1
+    image: grafana/grafana:6.0.2
     ports:
       - 19025:3000
     volumes:
@@ -245,7 +245,7 @@ services:
   c3-prom:
     depends_on:
       - c3-sidecar
-    image: prom/prometheus:v2.7.2
+    image: prom/prometheus:v2.8.1
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -336,7 +336,7 @@ services:
     ports:
       - 19034:10902
   c3-grafana:
-    image: grafana/grafana:6.0.1
+    image: grafana/grafana:6.0.2
     ports:
       - 19035:3000
     volumes:
@@ -377,7 +377,7 @@ services:
       - 19043:10902
 
   meta-grafana:
-    image: grafana/grafana:6.0.1
+    image: grafana/grafana:6.0.2
     ports:
       - 19045:3000
     volumes:
@@ -402,8 +402,6 @@ services:
       - "MINIO_ACCESS_KEY=THANOS"
       - "MINIO_SECRET_KEY=ITSTHANOSTIME"
     entrypoint: sh
-    #TODO check if this works for more than one prometheus
-    # This is a workaropund for creating the bucket "thanosbucket"
     command: -c 'mkdir -p /export/bucket001 && mkdir -p /export/bucket002 && mkdir -p /export/bucket003 && /usr/bin/minio server /export'
     ports:
       - 19000:9000
