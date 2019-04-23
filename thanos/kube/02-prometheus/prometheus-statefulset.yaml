@@ -29,7 +29,7 @@ spec:
       serviceAccountName: prometheus
       containers:
         - name: thanos-sidecar
-          image: improbable/thanos:v0.3.1
+          image: improbable/thanos:v0.3.2
           imagePullPolicy: "IfNotPresent"
           args:
             - "sidecar"
@@ -64,7 +64,7 @@ spec:
               mountPath: /creds
               readOnly: true
         - name: prometheus
-          image: "prom/prometheus:v2.7.1"
+          image: "prom/prometheus:v2.9.1"
           imagePullPolicy: "IfNotPresent"
           args:
             - "--web.listen-address=0.0.0.0:9090"
@@ -74,6 +74,7 @@ spec:
             - "--storage.tsdb.min-block-duration=2h"
             - "--storage.tsdb.max-block-duration=2h"
             - "--web.enable-lifecycle"
+            - "--web.enable-admin-api"
             - "--log.level=warn"
           ports:
             - name: http-prometheus
