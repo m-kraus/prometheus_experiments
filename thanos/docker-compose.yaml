@@ -27,7 +27,7 @@ services:
   c1-prom:
     depends_on:
       - c1-sidecar
-    image: prom/prometheus:v2.9.1
+    image: prom/prometheus:v2.9.2
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -52,7 +52,7 @@ services:
     ports:
       - 19011:9090
   c1-sidecar:
-    image: improbable/thanos:v0.3.2
+    image: improbable/thanos:v0.4.0
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -81,7 +81,7 @@ services:
     ports:
       - 19012:10902
   c1-query:
-    image: improbable/thanos:v0.3.2
+    image: improbable/thanos:v0.4.0
     networks:
       - c1
     command:
@@ -101,7 +101,7 @@ services:
     # S3 storage must be accessible before starting store
     depends_on:
       - store-s3
-    image: improbable/thanos:v0.3.2
+    image: improbable/thanos:v0.4.0
     volumes:
       - ./creds:/creds
       - c1-store:/thanos_store
@@ -119,7 +119,7 @@ services:
     ports:
       - 19014:10902
   c1-grafana:
-    image: grafana/grafana:6.1.4
+    image: grafana/grafana:6.1.6
     ports:
       - 19015:3000
     volumes:
@@ -137,7 +137,7 @@ services:
   c2-prom:
     depends_on:
       - c2-sidecar
-    image: prom/prometheus:v2.9.1
+    image: prom/prometheus:v2.9.2
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -162,7 +162,7 @@ services:
     ports:
       - 19021:9090
   c2-sidecar:
-    image: improbable/thanos:v0.3.2
+    image: improbable/thanos:v0.4.0
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -191,7 +191,7 @@ services:
     ports:
       - 19022:10902
   c2-query:
-    image: improbable/thanos:v0.3.2
+    image: improbable/thanos:v0.4.0
     networks:
       - c2
     command:
@@ -211,7 +211,7 @@ services:
     # S3 storage must be accessible before starting store
     depends_on:
       - store-s3
-    image: improbable/thanos:v0.3.2
+    image: improbable/thanos:v0.4.0
     volumes:
       - ./creds:/creds
       - c2-store:/thanos_store
@@ -229,7 +229,7 @@ services:
     ports:
       - 19024:10902
   c2-grafana:
-    image: grafana/grafana:6.1.4
+    image: grafana/grafana:6.1.6
     ports:
       - 19025:3000
     volumes:
@@ -247,7 +247,7 @@ services:
   c3-prom:
     depends_on:
       - c3-sidecar
-    image: prom/prometheus:v2.9.1
+    image: prom/prometheus:v2.9.2
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -272,7 +272,7 @@ services:
     ports:
       - 19031:9090
   c3-sidecar:
-    image: improbable/thanos:v0.3.2
+    image: improbable/thanos:v0.4.0
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -301,7 +301,7 @@ services:
     ports:
       - 19032:10902
   c3-query:
-    image: improbable/thanos:v0.3.2
+    image: improbable/thanos:v0.4.0
     networks:
       - c3
     command:
@@ -321,7 +321,7 @@ services:
     # S3 storage must be accessible before starting store
     depends_on:
       - store-s3
-    image: improbable/thanos:v0.3.2
+    image: improbable/thanos:v0.4.0
     volumes:
       - ./creds:/creds
       - c3-store:/thanos_store
@@ -339,7 +339,7 @@ services:
     ports:
       - 19034:10902
   c3-grafana:
-    image: grafana/grafana:6.1.4
+    image: grafana/grafana:6.1.6
     ports:
       - 19035:3000
     volumes:
@@ -355,7 +355,7 @@ services:
       - c3
 
   meta-query:
-    image: improbable/thanos:v0.3.2
+    image: improbable/thanos:v0.4.0
     networks:
       - meta
       - c1

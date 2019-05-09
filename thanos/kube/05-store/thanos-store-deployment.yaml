@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: thanos-query
-          image: improbable/thanos:v0.3.2
+          image: improbable/thanos:v0.4.0
           imagePullPolicy: "IfNotPresent"
           args:
             - "store"
