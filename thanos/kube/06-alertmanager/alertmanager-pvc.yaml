@@ -6,7 +6,6 @@ metadata:
   labels:
     app: alertmanager
 spec:
-  storageClassName: standard
   accessModes:
     - ReadWriteOnce
   resources:

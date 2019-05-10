@@ -125,7 +125,6 @@ spec:
     - metadata:
         name: prometheus-data
       spec:
-        storageClassName: standard
         accessModes:
           - ReadWriteOnce
         resources:

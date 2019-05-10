@@ -1,7 +1,5 @@
 #!/bin/bash
 
-export KUBECONFIG=.kubeconfig
-
 echo -n "Creating namespace..."
 kubectl create -f 00-base/monitoring-namespace.yaml
 
