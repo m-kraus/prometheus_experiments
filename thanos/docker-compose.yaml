@@ -27,7 +27,7 @@ services:
   c1-prom:
     depends_on:
       - c1-sidecar
-    image: prom/prometheus:v2.9.2
+    image: prom/prometheus:v2.13.0
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -36,7 +36,6 @@ services:
     networks:
       - c1
     command:
-      - --web.listen-address=0.0.0.0:9090
       - --config.file=/config/prometheus.yml
       - --storage.tsdb.path=/prometheus
       # recommended > 3x block-duration
@@ -45,14 +44,13 @@ services:
       - --storage.tsdb.min-block-duration=2h
       # recomended 2h
       - --storage.tsdb.max-block-duration=2h
-      # needed for reloading
       - --web.enable-lifecycle
-      - --web.enable-admin-api
+      #TODO- --web.enable-admin-api
       - --log.level=warn
     ports:
       - 19011:9090
   c1-sidecar:
-    image: improbable/thanos:v0.4.0
+    image: thanosio/thanos:v0.8.1
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -69,7 +67,6 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
     command:
       - sidecar
-      - --cluster.disable
       - --log.level=warn
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
@@ -81,16 +78,15 @@ services:
     ports:
       - 19012:10902
   c1-query:
-    image: improbable/thanos:v0.4.0
+    image: thanosio/thanos:v0.8.1
     networks:
       - c1
     command:
       - query
-      - --cluster.disable
       - --log.level=warn
+      - --query.replica-label=replica
       - --query.auto-downsampling
       - --query.partial-response
-      - --query.replica-label=replica
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --store=c1-sidecar:10901
@@ -101,7 +97,7 @@ services:
     # S3 storage must be accessible before starting store
     depends_on:
       - store-s3
-    image: improbable/thanos:v0.4.0
+    image: thanosio/thanos:v0.8.1
     volumes:
       - ./creds:/creds
       - c1-store:/thanos_store
@@ -110,7 +106,6 @@ services:
       - store
     command:
       - store
-      - --cluster.disable
       - --log.level=debug
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
@@ -119,7 +114,7 @@ services:
     ports:
       - 19014:10902
   c1-grafana:
-    image: grafana/grafana:6.1.6
+    image: grafana/grafana:6.4.2
     ports:
       - 19015:3000
     volumes:
@@ -137,7 +132,7 @@ services:
   c2-prom:
     depends_on:
       - c2-sidecar
-    image: prom/prometheus:v2.9.2
+    image: prom/prometheus:v2.13.0
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -146,23 +141,21 @@ services:
     networks:
       - c2
     command:
-      - --web.listen-address=0.0.0.0:9090
       - --config.file=/config/prometheus.yml
       - --storage.tsdb.path=/prometheus
       # recommended > 3x block-duration
-      - --storage.tsdb.retention.time=6h
+      - --storage.tsdb.retention.time=7h
       # recomended 2h
       - --storage.tsdb.min-block-duration=2h
       # recomended 2h
       - --storage.tsdb.max-block-duration=2h
-      # needed for reloading
       - --web.enable-lifecycle
-      - --web.enable-admin-api
+      #TODO- --web.enable-admin-api
       - --log.level=warn
     ports:
       - 19021:9090
   c2-sidecar:
-    image: improbable/thanos:v0.4.0
+    image: thanosio/thanos:v0.8.1
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -179,7 +172,6 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
     command:
       - sidecar
-      - --cluster.disable
       - --log.level=warn
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
@@ -191,16 +183,15 @@ services:
     ports:
       - 19022:10902
   c2-query:
-    image: improbable/thanos:v0.4.0
+    image: thanosio/thanos:v0.8.1
     networks:
       - c2
     command:
       - query
-      - --cluster.disable
       - --log.level=warn
+      - --query.replica-label=replica
       - --query.auto-downsampling
       - --query.partial-response
-      - --query.replica-label=replica
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --store=c2-sidecar:10901
@@ -211,7 +202,7 @@ services:
     # S3 storage must be accessible before starting store
     depends_on:
       - store-s3
-    image: improbable/thanos:v0.4.0
+    image: thanosio/thanos:v0.8.1
     volumes:
       - ./creds:/creds
       - c2-store:/thanos_store
@@ -220,7 +211,6 @@ services:
       - store
     command:
       - store
-      - --cluster.disable
       - --log.level=debug
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
@@ -229,7 +219,7 @@ services:
     ports:
       - 19024:10902
   c2-grafana:
-    image: grafana/grafana:6.1.6
+    image: grafana/grafana:6.4.2
     ports:
       - 19025:3000
     volumes:
@@ -247,7 +237,7 @@ services:
   c3-prom:
     depends_on:
       - c3-sidecar
-    image: prom/prometheus:v2.9.2
+    image: prom/prometheus:v2.13.0
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -256,7 +246,6 @@ services:
     networks:
       - c3
     command:
-      - --web.listen-address=0.0.0.0:9090
       - --config.file=/config/prometheus.yml
       - --storage.tsdb.path=/prometheus
       # recommended > 3x block-duration
@@ -265,14 +254,13 @@ services:
       - --storage.tsdb.min-block-duration=2h
       # recomended 2h
       - --storage.tsdb.max-block-duration=2h
-      # needed for reloading
       - --web.enable-lifecycle
-      - --web.enable-admin-api
+      #TODO- --web.enable-admin-api
       - --log.level=warn
     ports:
       - 19031:9090
   c3-sidecar:
-    image: improbable/thanos:v0.4.0
+    image: thanosio/thanos:v0.8.1
     # Set user to root, otherwise shared tsdb directory is not readable by one of the instances
     user: root
     volumes:
@@ -289,7 +277,6 @@ services:
       - GOOGLE_APPLICATION_CREDENTIALS=/creds/gcs-credentials.json
     command:
       - sidecar
-      - --cluster.disable
       - --log.level=warn
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
@@ -301,16 +288,15 @@ services:
     ports:
       - 19032:10902
   c3-query:
-    image: improbable/thanos:v0.4.0
+    image: thanosio/thanos:v0.8.1
     networks:
       - c3
     command:
       - query
-      - --cluster.disable
       - --log.level=warn
+      - --query.replica-label=replica
       - --query.auto-downsampling
       - --query.partial-response
-      - --query.replica-label=replica
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
       - --store=c3-sidecar:10901
@@ -321,7 +307,7 @@ services:
     # S3 storage must be accessible before starting store
     depends_on:
       - store-s3
-    image: improbable/thanos:v0.4.0
+    image: thanosio/thanos:v0.8.1
     volumes:
       - ./creds:/creds
       - c3-store:/thanos_store
@@ -330,7 +316,6 @@ services:
       - store
     command:
       - store
-      - --cluster.disable
       - --log.level=debug
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
@@ -339,7 +324,7 @@ services:
     ports:
       - 19034:10902
   c3-grafana:
-    image: grafana/grafana:6.1.6
+    image: grafana/grafana:6.4.2
     ports:
       - 19035:3000
     volumes:
@@ -355,7 +340,7 @@ services:
       - c3
 
   meta-query:
-    image: improbable/thanos:v0.4.0
+    image: thanosio/thanos:v0.8.1
     networks:
       - meta
       - c1
@@ -363,13 +348,8 @@ services:
       - c3
     command:
       - query
-      - --cluster.disable
       - --debug.name=meta-query
       - --log.level=debug
-      # Test this setting
-      - --query.auto-downsampling
-      - --query.partial-response
-      # Test this setting
       - --query.replica-label=replica
       - --grpc-address=0.0.0.0:10901
       - --http-address=0.0.0.0:10902
@@ -380,7 +360,7 @@ services:
       - 19043:10902
 
   meta-grafana:
-    image: grafana/grafana:6.1.4
+    image: grafana/grafana:6.4.2
     ports:
       - 19045:3000
     volumes:

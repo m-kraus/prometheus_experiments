@@ -20,11 +20,10 @@ spec:
     spec:
       containers:
         - name: thanos-query
-          image: improbable/thanos:v0.4.0
+          image: thanosio/thanos:v0.8.1
           imagePullPolicy: "IfNotPresent"
           args:
             - "query"
-            - "--cluster.disable"
             - "--query.auto-downsampling"
             - "--query.partial-response"
             - "--query.replica-label=replica"
@@ -38,5 +37,11 @@ spec:
               containerPort: 10902
             - name: grpc
               containerPort: 10901
-          #TODO readinessProbe:
-          #TODO livenessProbe:
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /-/healthy
+          readinessProbe:
+            httpGet:
+              port: http
+              path: /-/ready

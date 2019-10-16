@@ -29,11 +29,10 @@ spec:
       serviceAccountName: prometheus
       containers:
         - name: thanos-sidecar
-          image: improbable/thanos:v0.4.0
+          image: thanosio/thanos:v0.8.1
           imagePullPolicy: "IfNotPresent"
           args:
             - "sidecar"
-            - "--cluster.disable"
             - "--tsdb.path=/data"
             - "--prometheus.url=http://127.0.0.1:9090"
             - "--grpc-address=0.0.0.0:10901"
@@ -52,6 +51,14 @@ spec:
               containerPort: 10902
             - name: grpc-sidecar
               containerPort: 10901
+          livenessProbe:
+            httpGet:
+              port: http-sidecar
+              path: /-/healthy
+          readinessProbe:
+            httpGet:
+              port: http-sidecar
+              path: /-/ready
           volumeMounts:
             - name: prometheus-data
               mountPath: /data
@@ -64,17 +71,17 @@ spec:
               mountPath: /creds
               readOnly: true
         - name: prometheus
-          image: "prom/prometheus:v2.9.2"
+          image: "prom/prometheus:v2.13.0"
           imagePullPolicy: "IfNotPresent"
           args:
             - "--web.listen-address=0.0.0.0:9090"
             - "--config.file=/etc/prometheus-shared/prometheus.yml"
             - "--storage.tsdb.path=/data"
-            - "--storage.tsdb.retention.time=24h"
+            - "--storage.tsdb.retention.time=6h"
             - "--storage.tsdb.min-block-duration=2h"
             - "--storage.tsdb.max-block-duration=2h"
             - "--web.enable-lifecycle"
-            - "--web.enable-admin-api"
+            #FIXME- "--web.enable-admin-api"
             - "--log.level=warn"
           ports:
             - name: http-prometheus

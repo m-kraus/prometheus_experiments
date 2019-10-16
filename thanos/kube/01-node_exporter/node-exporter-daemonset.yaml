@@ -18,11 +18,14 @@ spec:
     spec:
       containers:
         - name: prometheus-node-exporter
-          image: "prom/node-exporter:v0.17.0"
+          image: "prom/node-exporter:v0.18.1"
           imagePullPolicy: "IfNotPresent"
           args:
+            - --web.listen-address=127.0.0.1:9100
             - --path.procfs=/host/proc
             - --path.sysfs=/host/sys
+            - --collector.filesystem.ignored-mount-points=^/(dev|proc|sys|var/lib/docker/.+)($|/)
+            - --collector.filesystem.ignored-fs-types=^(autofs|binfmt_misc|cgroup|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|sysfs|tracefs)$
           ports:
             - name: metrics
               containerPort: 9100

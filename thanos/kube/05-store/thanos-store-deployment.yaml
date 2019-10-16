@@ -20,11 +20,10 @@ spec:
     spec:
       containers:
         - name: thanos-query
-          image: improbable/thanos:v0.4.0
+          image: thanosio/thanos:v0.8.1
           imagePullPolicy: "IfNotPresent"
           args:
             - "store"
-            - "--cluster.disable"
             - "--grpc-address=0.0.0.0:10901"
             - "--http-address=0.0.0.0:10902"
             - "--data-dir=/store"
@@ -35,17 +34,23 @@ spec:
               containerPort: 10902
             - name: grpc
               containerPort: 10901
-          #TODO readinessProbe:
-          #TODO livenessProbe:
+          livenessProbe:
+            httpGet:
+              port: http
+              path: /-/healthy
+          readinessProbe:
+            httpGet:
+              port: http
+              path: /-/ready
           volumeMounts:
-          - name: data
-            mountPath: /store
-          - name: creds
-            mountPath: /creds
-            readOnly: true
+            - name: data
+              mountPath: /store
+            - name: creds
+              mountPath: /creds
+              readOnly: true
       volumes:
-      - name: data
-        emptyDir: {}
-      - name: creds
-        secret:
-          secretName: s3-creds
+        - name: data
+          emptyDir: {}
+        - name: creds
+          secret:
+            secretName: s3-creds
