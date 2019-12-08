@@ -1,0 +1,67 @@
+#!/usr/bin/env ansible-playbook
+---
+- hosts: localhost
+  gather_facts: no
+  vars:
+    install_path: "/PATH/TO/CONFIGS"
+    docker_network: "prometheus"
+    prometheus_volume: "prometheus_data"
+    prometheus_container_name: "prometheus"
+    prometheus_container_image: "prom/prometheus:v2.14.0"
+    grafana_volume: "grafana_data"
+    grafana_container_name: "grafana"
+    grafana_container_image: "grafana/grafana:6.5.1"
+
+  tasks:
+    - name: "Make sure needed volumes exist"
+      docker_volume:
+        name: "{{ item }}"
+      loop:
+        - "{{ prometheus_volume }}"
+        - "{{ grafana_volume }}"
+
+    - name: "Make sure needed network exists"
+      docker_network:
+        name: "{{ docker_network }}"
+
+    - name: "Make sure prometheus container exists"
+      docker_container:
+        name: "{{ prometheus_container_name }}"
+        image: "{{ prometheus_container_image }}"
+        command:
+          - --web.listen-address=0.0.0.0:9090
+          - --config.file=/etc/prometheus/prometheus.yml
+          - --storage.tsdb.path=/prometheus
+          - --web.enable-lifecycle
+          - --log.level=info
+        restart_policy: always
+        networks:
+          - name: "{{ docker_network }}"
+        purge_networks: yes
+        ports:
+          - "9090:9090"
+        volumes:
+          - "{{ prometheus_volume }}:/prometheus"
+          - "{{ install_path }}/config/prometheus:/etc/prometheus"
+        #TODO
+        # healthcheck
+
+    - name: "Make sure grafana container exists"
+      docker_container:
+        name: "{{ grafana_container_name }}"
+        image: "{{ grafana_container_image }}"
+        restart_policy: always
+        networks:
+          - name: "{{ docker_network }}"
+        purge_networks: yes
+        ports:
+          - "3000:3000"
+        volumes:
+          - "{{ grafana_volume }}:/var/lib/grafana"
+          - "{{ install_path }}/config/grafana/provisioning:/provisioning"
+        env:
+          GF_SECURITY_ADMIN_USER: "admin"
+          GF_SECURITY_ADMIN_PASSWORD: "pass"
+          GF_PATHS_PROVISIONING: "/provisioning"
+          GF_USERS_ALLOW_SIGN_UP: "false"
+          GF_LOG_LEVEL: "warn"
