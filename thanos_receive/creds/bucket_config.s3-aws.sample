@@ -1,0 +1,13 @@
+type: S3
+config:
+    access_key: "<MY_ACCESS_KEY>"
+    secret_key: "<MY_SECRET_ACCESS_KEY>"
+    bucket: "<MY_BUCKET>"
+    endpoint: "<MY_ENDPOINT>"
+    insecure: false
+    signature_version2: false
+    encrypt_sse: false
+    put_user_metadata: {}
+    http_config:
+        idle_conn_timeout: 0s
+        insecure_skip_verify: false

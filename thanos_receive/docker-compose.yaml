@@ -1,0 +1,211 @@
+version: "3.5"
+
+volumes:
+  c1-prom: {}
+  c2-prom: {}
+  c3-prom: {}
+  c1-store: {}
+  c2-store: {}
+  c3-store: {}
+  c1-grafana: {}
+  c2-grafana: {}
+  c3-grafana: {}
+  store-s3: {}
+  meta-grafana: {}
+  meta-store: {}
+  meta-receive: {}
+
+networks:
+  c1:
+  c2:
+  c3:
+  store:
+  meta:
+
+services:
+  c1-prom:
+    image: prom/prometheus:v2.15.0-rc.0
+    volumes:
+      - ./prometheus/c1:/config
+      - c1-prom:/prometheus
+    networks:
+      - meta
+      - c1
+    command:
+      - --config.file=/config/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=6h
+      - --web.enable-lifecycle
+    ports:
+      - 19011:9090
+  c1-grafana:
+    image: grafana/grafana:6.5.2
+    ports:
+      - 19015:3000
+    volumes:
+      - ./grafana/c1/provisioning:/provisioning
+      - c1-grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=pass
+      - GF_PATHS_PROVISIONING=/provisioning
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_LOG_LEVEL=warn
+    networks:
+      - c1
+
+  c2-prom:
+    image: prom/prometheus:v2.15.0-rc.0
+    volumes:
+      - ./prometheus/c2:/config
+      - c2-prom:/prometheus
+    networks:
+      - meta
+      - c2
+    command:
+      - --config.file=/config/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=6h
+      - --web.enable-lifecycle
+    ports:
+      - 19021:9090
+  c2-grafana:
+    image: grafana/grafana:6.5.2
+    ports:
+      - 19025:3000
+    volumes:
+      - ./grafana/c2/provisioning:/provisioning
+      - c2-grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=pass
+      - GF_PATHS_PROVISIONING=/provisioning
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_LOG_LEVEL=warn
+    networks:
+      - c2
+
+  c3-prom:
+    image: prom/prometheus:v2.15.0-rc.0
+    volumes:
+      - ./prometheus/c3:/config
+      - c3-prom:/prometheus
+    networks:
+      - meta
+      - c3
+    command:
+      - --config.file=/config/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=6h
+      - --web.enable-lifecycle
+    ports:
+      - 19031:9090
+  c3-grafana:
+    image: grafana/grafana:6.5.2
+    ports:
+      - 19035:3000
+    volumes:
+      - ./grafana/c3/provisioning:/provisioning
+      - c3-grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=pass
+      - GF_PATHS_PROVISIONING=/provisioning
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_LOG_LEVEL=warn
+    networks:
+      - c3
+
+  store-s3:
+    image: minio/minio
+    volumes:
+      - store-s3:/export
+    networks:
+      - store
+    environment:
+      - "MINIO_ACCESS_KEY=THANOS"
+      - "MINIO_SECRET_KEY=ITSTHANOSTIME"
+    entrypoint: sh
+    command: -c 'mkdir -p /export/bucket_meta && /usr/bin/minio server /export'
+    ports:
+      - 19000:9000
+
+  meta-receive:
+    # S3 storage must be accessible before starting store
+    depends_on:
+      - store-s3
+    image: thanosio/thanos:v0.9.0
+    volumes:
+      - ./creds:/creds
+      - meta-receive:/thanos_receive
+    networks:
+      - meta
+      - store
+    # workaround for waiting for S3/minio
+    entrypoint: sh
+    command: -c 'sleep 10 && /bin/thanos receive --grpc-address=0.0.0.0:10901 --http-address=0.0.0.0:10902 --remote-write.address=0.0.0.0:19291 --label=store=\"receive\" --tsdb.path=/thanos_store --tsdb.retention=6h --objstore.config-file=/creds/bucket_config.meta'
+    #command:
+    #  - receive
+    #  - --grpc-address=0.0.0.0:10901
+    #  - --http-address=0.0.0.0:10902
+    #  - --remote-write.address=0.0.0.0:19291
+    #  - --label=store=\"receive\"
+    #  - --tsdb.path=/thanos_store
+    #  - --tsdb.retention=6h
+    #  - --objstore.config-file=/creds/bucket_config.meta
+    ports:
+      - 19041:10902
+
+  meta-store:
+    # S3 storage must be accessible before starting store
+    depends_on:
+      - store-s3
+    image: thanosio/thanos:v0.9.0
+    volumes:
+      - ./creds:/creds
+      - meta-store:/thanos_store
+    networks:
+      - meta
+      - store
+    # workaround for waiting for S3/minio
+    entrypoint: sh
+    command: -c 'sleep 10 && /bin/thanos store --grpc-address=0.0.0.0:10901 --http-address=0.0.0.0:10902 --data-dir=/thanos_store --objstore.config-file=/creds/bucket_config.meta'
+    #command:
+    #  - store
+    #  - --grpc-address=0.0.0.0:10901
+    #  - --http-address=0.0.0.0:10902
+    #  - --data-dir=/thanos_store
+    #  - --objstore.config-file=/creds/bucket_config.meta
+    ports:
+      - 19042:10902
+
+  meta-query:
+    image: thanosio/thanos:v0.9.0
+    networks:
+      - meta
+    command:
+      - query
+      - --debug.name=meta-query
+      - --query.replica-label=replica
+      - --grpc-address=0.0.0.0:10901
+      - --http-address=0.0.0.0:10902
+      - --store=meta-store:10901
+      - --store=meta-receive:10901
+    ports:
+      - 19043:10902
+
+  meta-grafana:
+    image: grafana/grafana:6.5.2
+    ports:
+      - 19045:3000
+    volumes:
+      - ./grafana/meta/provisioning:/provisioning
+      - meta-grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=pass
+      - GF_PATHS_PROVISIONING=/provisioning
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_LOG_LEVEL=warn
+    networks:
+      - meta

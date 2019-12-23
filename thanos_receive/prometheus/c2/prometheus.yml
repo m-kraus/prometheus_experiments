@@ -1,0 +1,19 @@
+global:
+  external_labels:
+    company: acme
+    cluster: "c2"
+    replica: "repl1"
+
+remote_write:
+  - url: http://meta-receive:19291/api/v1/receive
+    write_relabel_configs:
+      - source_labels: [__name__]
+        regex: expensive.*
+        action: drop
+
+scrape_configs:
+  - job_name: prometheus
+    scrape_interval: 5s
+    static_configs:
+      - targets:
+          - "localhost:9090"
