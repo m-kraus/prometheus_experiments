@@ -24,7 +24,7 @@ networks:
 
 services:
   c1-prom:
-    image: prom/prometheus:v2.15.0-rc.0
+    image: prom/prometheus:v2.15.0
     volumes:
       - ./prometheus/c1:/config
       - c1-prom:/prometheus
@@ -55,7 +55,7 @@ services:
       - c1
 
   c2-prom:
-    image: prom/prometheus:v2.15.0-rc.0
+    image: prom/prometheus:v2.15.0
     volumes:
       - ./prometheus/c2:/config
       - c2-prom:/prometheus
@@ -86,7 +86,7 @@ services:
       - c2
 
   c3-prom:
-    image: prom/prometheus:v2.15.0-rc.0
+    image: prom/prometheus:v2.15.0
     volumes:
       - ./prometheus/c3:/config
       - c3-prom:/prometheus
